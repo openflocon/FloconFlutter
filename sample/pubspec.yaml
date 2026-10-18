@@ -37,6 +37,7 @@ dependencies:
   dio: ^5.11.1
   flocon:
     path: ..
+  http: ^1.6.0
 
 dev_dependencies:
   flutter_test:

@@ -4,7 +4,9 @@ import 'client/flocon_client.dart';
 import 'config.dart';
 import 'core/logger.dart';
 import 'core/plugin.dart';
+import 'plugins/analytics/analytics_plugin.dart';
 import 'plugins/network/network_plugin.dart';
+import 'plugins/table/table_plugin.dart';
 
 /// Entry point of the Flocon SDK.
 ///
@@ -24,12 +26,18 @@ class Flocon {
   /// The network plugin, or null before [initialize].
   static FloconNetworkPlugin? get networkPlugin => _client?.plugin<FloconNetworkPlugin>();
 
+  static FloconAnalyticsPlugin? get analyticsPlugin => _client?.plugin<FloconAnalyticsPlugin>();
+
+  static FloconTablePlugin? get tablePlugin => _client?.plugin<FloconTablePlugin>();
+
   /// Starts the SDK and connects to the desktop app, retrying every 3 seconds until reachable
   /// (and again whenever the connection drops). Calling it twice has no effect.
   static void initialize({FloconConfig config = const FloconConfig()}) {
     if (_client != null) return;
     final client = FloconClient(config);
     client.register(FloconNetworkPlugin(sender: client));
+    client.register(FloconAnalyticsPlugin(sender: client));
+    client.register(FloconTablePlugin(sender: client));
     _client = client;
     unawaited(_start(client));
   }

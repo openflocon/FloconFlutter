@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flocon/flocon.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,6 +17,8 @@ void main() {
 
 final dio = Dio(BaseOptions(baseUrl: 'https://jsonplaceholder.typicode.com'))
   ..interceptors.add(FloconDioInterceptor());
+
+final httpClient = FloconHttpClient(http.Client());
 
 class SampleApp extends StatelessWidget {
   const SampleApp({super.key});
@@ -47,6 +50,16 @@ class _HomePageState extends State<HomePage> {
       setState(() => _status = '$label → ${r.statusCode}');
     } on DioException catch (e) {
       setState(() => _status = '$label → ${e.response?.statusCode ?? e.type.name}');
+    }
+  }
+
+  Future<void> _runHttp(String label, Future<http.Response> Function() call) async {
+    setState(() => _status = '$label…');
+    try {
+      final r = await call();
+      setState(() => _status = '$label → ${r.statusCode}');
+    } catch (e) {
+      setState(() => _status = '$label → $e');
     }
   }
 
@@ -103,6 +116,19 @@ class _HomePageState extends State<HomePage> {
       ('Slow request (3s)', () => _run('Slow', () => dio.get('https://httpbin.org/delay/3'))),
       ('Image download', () => _run('Image', () => dio.get('https://httpbin.org/image/png', options: Options(responseType: ResponseType.bytes)))),
       ('FormData upload', () => _run('FormData', () => dio.post('https://httpbin.org/post', data: FormData.fromMap({'name': 'flocon', 'file': MultipartFile.fromString('hello', filename: 'hello.txt')})))),
+      ('http: GET /todos/1', () => _runHttp('http GET', () => httpClient.get(Uri.parse('https://jsonplaceholder.typicode.com/todos/1')))),
+      ('http: POST /posts', () => _runHttp('http POST', () => httpClient.post(Uri.parse('https://jsonplaceholder.typicode.com/posts'), headers: {'content-type': 'application/json'}, body: '{"title":"from http"}'))),
+      ('http: 404', () => _runHttp('http 404', () => httpClient.get(Uri.parse('https://jsonplaceholder.typicode.com/nope')))),
+      ('Analytics: log events', () {
+        floconAnalytics('firebase').logEvents([
+          AnalyticsEvent(eventName: 'button_clicked', properties: [AnalyticsProperty('button_id', 'sample'), AnalyticsProperty('at', DateTime.now().toIso8601String())]),
+        ]);
+        setState(() => _status = 'Analytics event sent');
+      }),
+      ('Table: log row', () {
+        floconTable('users').log([TableColumnConfig('name', 'Florent'), TableColumnConfig('age', '33')]);
+        setState(() => _status = 'Table row sent');
+      }),
       ('WebSocket: open', _openSocket),
       ('WebSocket: send', _sendSocket),
       ('WebSocket: close', _closeSocket),

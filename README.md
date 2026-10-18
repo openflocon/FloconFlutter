@@ -3,7 +3,7 @@
 Flutter SDK for [Flocon](https://github.com/openflocon/Flocon), the desktop debugging tool for mobile apps
 (see also [FloconSwift](https://github.com/openflocon/FloconSwift)).
 
-Current scope: **Network** (HTTP through [Dio](https://pub.dev/packages/dio), plus manual WebSocket events).
+Current scope: **Network** (HTTP through [Dio](https://pub.dev/packages/dio) or [`package:http`](https://pub.dev/packages/http), plus manual WebSocket events), **Analytics** and **Tables**.
 
 ## Usage
 
@@ -39,6 +39,26 @@ FloconDioInterceptor(
 );
 ```
 
+### package:http
+
+```dart
+final client = FloconHttpClient(http.Client()); // same options: shouldLog, isImage
+```
+
+### Analytics (one table per stream, e.g. per provider)
+
+```dart
+floconAnalytics('firebase').logEvents([
+  AnalyticsEvent(eventName: 'button_clicked', properties: [AnalyticsProperty('button_id', 'pay')]),
+]);
+```
+
+### Tables
+
+```dart
+floconTable('users').log([TableColumnConfig('name', 'Florent'), TableColumnConfig('age', '33')]);
+```
+
 ### WebSockets
 
 ```dart
@@ -56,4 +76,4 @@ cd sample && flutter run -d macos
 ```
 
 ## Status / TODO
-Network mocks, bad-network simulation, analytics, tables, preferences, files, device plugins (not in FloconSwift's network plugin either yet).
+Network mocks, bad-network simulation, preferences, files, device plugins (not in FloconSwift's network plugin either yet).
