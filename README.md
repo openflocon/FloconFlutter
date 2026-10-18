@@ -69,7 +69,6 @@ floconLogWebSocketEvent(FloconWebSocketEvent(
 ## Sample
 
 `sample/` is a Flutter app (iOS, Android, macOS) with a home screen linking to: a Dio screen, a `package:http` screen, an image screen (download + display via Dio or http), and a screen for WebSocket / Analytics / Tables.
-slow request, image, FormData and a WebSocket demo.
 
 ```bash
 cd sample && flutter run -d macos
