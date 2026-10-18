@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flocon/flocon.dart';
+import 'package:flocon_device/flocon_device.dart';
 import 'package:flutter/material.dart';
 
 import 'screens/home_screen.dart';
@@ -12,6 +13,7 @@ void main() {
   Flocon.initialize(
     config: FloconConfig(host: Platform.isAndroid ? '10.0.2.2' : 'localhost'),
   );
+  floconEnableDevicePlugin(); // the app shows with its icon in Flocon
   runApp(const SampleApp());
 }
 

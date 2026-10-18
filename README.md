@@ -12,6 +12,7 @@ Once the SDK is started, your app connects to the Flocon desktop app and shows, 
 | **Analytics** | [`floconAnalytics(stream)`](#analytics): one table per stream (e.g. per provider) |
 | **Tables** | [`floconTable(name)`](#tables): any structured data you want to inspect while the app runs |
 | **Preferences** | [`floconRegisterSharedPreferences`](#preferences): browse and edit your `SharedPreferences` from the desktop |
+| **Device** | [`floconEnableDevicePlugin`](#device): your app shows with its icon in the desktop |
 
 ## Packages
 
@@ -23,6 +24,7 @@ The SDK is split in several packages, so that you only depend on the libraries y
 | `flocon_dio` | `FloconDioInterceptor` | `dio` |
 | `flocon_http` | `FloconHttpClient` | `http` |
 | `flocon_shared_preferences` | Preferences plugin | `shared_preferences` |
+| `flocon_device` | Device plugin (app icon), has native code for Android, iOS and macOS | nothing else |
 
 ## Installation
 
@@ -47,6 +49,10 @@ dependencies:
     git:
       url: https://github.com/openflocon/FloconFlutter.git
       path: packages/flocon_shared_preferences
+  flocon_device:
+    git:
+      url: https://github.com/openflocon/FloconFlutter.git
+      path: packages/flocon_device
 ```
 
 ## Getting started
@@ -184,6 +190,18 @@ The desktop lists the keys with their typed values and lets you edit `String`, `
 and `List<String>` values; an edit is only applied when its type matches the stored one.
 Call it after `Flocon.initialize()` (it does nothing before). Register several instances with different names.
 
+## Device
+
+`import 'package:flocon_device/flocon_device.dart';`
+
+```dart
+Flocon.initialize();
+floconEnableDevicePlugin(); // answers the desktop's request for the app icon
+```
+
+The icon is read natively (Android: launcher icon, iOS: largest icon of the `Info.plist`, macOS: the app icon)
+and sent as a base64 PNG of at most 300 pixels. Restarting the app from the desktop is not supported.
+
 ## Custom plugins
 
 ```dart
@@ -240,6 +258,7 @@ packages/
   flocon_dio/                   # Dio interceptor + FloconNetworkOptions
   flocon_http/                  # package:http client wrapper
   flocon_shared_preferences/    # Preferences plugin
+  flocon_device/                # Device plugin (app icon), with native code
 sample/                         # sample app
 tool/check.sh
 ```
@@ -254,4 +273,4 @@ each message wrapped in an envelope (`deviceId`, `plugin`, `method`, `body`, `ap
 ## Status / TODO
 
 Not implemented yet (they are not in FloconSwift's network plugin either): network mocks and bad-network
-simulation configured from the desktop, files, device plugins.
+simulation configured from the desktop, files, and the other device features (restart app).
