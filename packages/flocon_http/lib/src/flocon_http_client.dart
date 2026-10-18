@@ -3,8 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 
-import '../../../flocon.dart';
-import '../network_plugin.dart';
+import 'package:flocon/flocon.dart';
 
 /// `package:http` client wrapper that sends every call to the Flocon desktop app.
 ///

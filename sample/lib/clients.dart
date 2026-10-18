@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
-import 'package:flocon/flocon.dart';
+import 'package:flocon_dio/flocon_dio.dart';
+import 'package:flocon_http/flocon_http.dart';
 import 'package:http/http.dart' as http;
 
 const jsonPlaceholder = 'https://jsonplaceholder.typicode.com';

@@ -42,8 +42,14 @@ class Flocon {
     unawaited(_start(client));
   }
 
-  /// Registers a custom plugin. No effect before [initialize].
+  /// Registers a custom plugin, replacing the one with the same name. No effect before [initialize].
   static void register(FloconPlugin plugin) => _client?.register(plugin);
+
+  /// The registered plugin of type [T], or null.
+  static T? plugin<T extends FloconPlugin>() => _client?.plugin<T>();
+
+  /// Lets a plugin package send messages to the desktop app. Null before [initialize].
+  static FloconMessageSender? get messageSender => _client;
 
   static Future<void> _start(FloconClient client) async {
     while (true) {

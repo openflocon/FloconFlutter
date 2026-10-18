@@ -7,10 +7,22 @@ Once the SDK is started, your app connects to the Flocon desktop app and shows, 
 
 | Feature | How |
 | --- | --- |
-| **Network** (HTTP) | [`FloconDioInterceptor`](#dio) for [Dio](https://pub.dev/packages/dio), [`FloconHttpClient`](#packagehttp) for [`package:http`](https://pub.dev/packages/http). Headers, bodies, timing, errors, images |
+| **Network** (HTTP) | [`FloconDioInterceptor`](#dio) for [Dio](https://pub.dev/packages/dio), [`FloconHttpClient`](#packagehttp) for [`package:http`](https://pub.dev/packages/http). Headers, bodies, timing, errors, images. Separate packages, so you only pull the HTTP library you use |
 | **Network** (WebSocket) | [`floconLogWebSocketEvent`](#websockets): log the events of the connections you want to inspect |
 | **Analytics** | [`floconAnalytics(stream)`](#analytics): one table per stream (e.g. per provider) |
 | **Tables** | [`floconTable(name)`](#tables): any structured data you want to inspect while the app runs |
+| **Preferences** | [`floconRegisterSharedPreferences`](#preferences): browse and edit your `SharedPreferences` from the desktop |
+
+## Packages
+
+The SDK is split in several packages, so that you only depend on the libraries you actually use:
+
+| Package | Content | Depends on |
+| --- | --- | --- |
+| `flocon` | connection, Network (WebSocket events), Analytics, Tables, custom plugins | no HTTP library |
+| `flocon_dio` | `FloconDioInterceptor` | `dio` |
+| `flocon_http` | `FloconHttpClient` | `http` |
+| `flocon_shared_preferences` | Preferences plugin | `shared_preferences` |
 
 ## Installation
 
@@ -19,9 +31,22 @@ There is no release on pub.dev yet, depend on the repository:
 ```yaml
 dependencies:
   flocon:
-    git: https://github.com/openflocon/FloconFlutter.git
-  dio: ^5.0.0   # if you use Dio
-  http: ^1.0.0  # if you use package:http
+    git:
+      url: https://github.com/openflocon/FloconFlutter.git
+      path: packages/flocon
+  # only the ones you need:
+  flocon_dio:
+    git:
+      url: https://github.com/openflocon/FloconFlutter.git
+      path: packages/flocon_dio
+  flocon_http:
+    git:
+      url: https://github.com/openflocon/FloconFlutter.git
+      path: packages/flocon_http
+  flocon_shared_preferences:
+    git:
+      url: https://github.com/openflocon/FloconFlutter.git
+      path: packages/flocon_shared_preferences
 ```
 
 ## Getting started
@@ -67,6 +92,8 @@ See `sample/` for a working configuration of the three platforms.
 
 ### Dio
 
+`import 'package:flocon_dio/flocon_dio.dart';`
+
 ```dart
 final dio = Dio()..interceptors.add(FloconDioInterceptor());
 ```
@@ -74,6 +101,8 @@ final dio = Dio()..interceptors.add(FloconDioInterceptor());
 Add it last, so it sees the final request and the raw response.
 
 ### package:http
+
+`import 'package:flocon_http/flocon_http.dart';`
 
 ```dart
 final client = FloconHttpClient(http.Client());
@@ -142,6 +171,19 @@ floconTable('users').log([
 ]);
 ```
 
+## Preferences
+
+`import 'package:flocon_shared_preferences/flocon_shared_preferences.dart';`
+
+```dart
+final prefs = await SharedPreferences.getInstance();
+floconRegisterSharedPreferences(prefs); // optional second argument: the name of the store in the desktop
+```
+
+The desktop lists the keys with their typed values and lets you edit `String`, `bool`, `int`, `double`
+and `List<String>` values; an edit is only applied when its type matches the stored one.
+Call it after `Flocon.initialize()` (it does nothing before). Register several instances with different names.
+
 ## Custom plugins
 
 ```dart
@@ -157,6 +199,11 @@ class MyPlugin implements FloconPlugin {
 Flocon.register(MyPlugin()); // after Flocon.initialize()
 ```
 
+To send messages, get the sender with `Flocon.messageSender`; find a registered plugin with `Flocon.plugin<T>()`.
+
+```dart
+```
+
 ## Sample
 
 `sample/` is a Flutter app (iOS, Android, macOS). Its home screen links to one screen per feature:
@@ -169,6 +216,7 @@ Flocon.register(MyPlugin()); // after Flocon.initialize()
 | **WebSocket** | open, send and close an echo connection, with each event logged |
 | **Analytics** | events on two streams (`firebase`, `amplitude`) and a batch of events |
 | **Tables** | rows added to the `users` and `settings` tables |
+| **Preferences** | a `SharedPreferences` store with a String, bool, int, double and string list, editable from Flocon |
 
 Start the Flocon desktop app, then:
 
@@ -181,21 +229,23 @@ The sample picks `10.0.2.2` on Android and `localhost` elsewhere (edit `sample/l
 ## Development
 
 ```bash
-flutter pub get
-flutter analyze
-flutter test
+tool/check.sh   # pub get, analyze and test in every package and in the sample
 ```
 
 ```
-lib/src/
-  flocon.dart, config.dart            # entry point, FloconConfig
-  client/                             # WebSocket connection, message queue, envelope, plugin routing
-  core/, model/                       # plugin interfaces, app infos, message types
-  plugins/network/                    # network plugin, Dio interceptor, http client, WebSocket events
-  plugins/analytics/, plugins/table/
-test/                                 # JSON payload and interceptor tests
-sample/                               # sample app
+packages/
+  flocon/                       # core
+    lib/src/                    #   flocon.dart, config.dart, client/ (WebSocket, queue, envelope),
+                                #   core/, model/, plugins/network|analytics|table
+  flocon_dio/                   # Dio interceptor + FloconNetworkOptions
+  flocon_http/                  # package:http client wrapper
+  flocon_shared_preferences/    # Preferences plugin
+sample/                         # sample app
+tool/check.sh
 ```
+
+The adapter packages only depend on the public API of `flocon` (`Flocon.networkPlugin`, `Flocon.messageSender`,
+`Flocon.register`, `FloconPlugin`).
 
 The protocol is the one of [FloconSwift](https://github.com/openflocon/FloconSwift): a WebSocket on port 9023,
 each message wrapped in an envelope (`deviceId`, `plugin`, `method`, `body`, `appName`, `appPackageName`,
@@ -204,4 +254,4 @@ each message wrapped in an envelope (`deviceId`, `plugin`, `method`, `body`, `ap
 ## Status / TODO
 
 Not implemented yet (they are not in FloconSwift's network plugin either): network mocks and bad-network
-simulation configured from the desktop, preferences, files, device plugins.
+simulation configured from the desktop, files, device plugins.

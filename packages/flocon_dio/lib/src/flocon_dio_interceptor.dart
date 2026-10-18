@@ -3,9 +3,8 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../flocon.dart';
-import '../network_options.dart';
-import '../network_plugin.dart';
+import 'package:flocon/flocon.dart';
+import 'network_options.dart';
 
 /// Dio interceptor that sends every call to the Flocon desktop app.
 ///

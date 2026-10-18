@@ -1,0 +1,20 @@
+name: flocon_shared_preferences
+description: Shows and edits your SharedPreferences in the Flocon desktop debugger.
+version: 0.0.1
+publish_to: none
+
+environment:
+  sdk: ^3.8.1
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flocon:
+    path: ../flocon
+  shared_preferences: ^2.5.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0

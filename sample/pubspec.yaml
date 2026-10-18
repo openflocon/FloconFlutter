@@ -36,7 +36,14 @@ dependencies:
   cupertino_icons: ^1.0.8
   dio: ^5.11.1
   flocon:
-    path: ..
+    path: ../packages/flocon
+  flocon_dio:
+    path: ../packages/flocon_dio
+  flocon_http:
+    path: ../packages/flocon_http
+  flocon_shared_preferences:
+    path: ../packages/flocon_shared_preferences
+  shared_preferences: ^2.5.0
   http: ^1.6.0
 
 dev_dependencies:

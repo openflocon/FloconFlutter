@@ -1,0 +1,21 @@
+name: flocon_http
+description: package:http client wrapper that sends your HTTP calls to the Flocon desktop debugger.
+version: 0.0.1
+publish_to: none
+
+environment:
+  sdk: ^3.8.1
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flocon:
+    path: ../flocon
+  http: ^1.6.0
+  uuid: ^4.6.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0

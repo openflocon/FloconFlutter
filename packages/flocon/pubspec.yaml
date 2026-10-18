@@ -1,5 +1,5 @@
 name: flocon
-description: Flocon SDK for Flutter - sends your app network calls (Dio) to the Flocon desktop debugger.
+description: Flocon SDK for Flutter - sends your app's network calls, analytics events and tables to the Flocon desktop debugger.
 version: 0.0.1
 homepage:
 
@@ -10,12 +10,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  dio: ^5.11.1
-  web_socket_channel: ^3.0.3
   device_info_plus: ^12.4.0
   package_info_plus: ^9.0.1
   uuid: ^4.6.0
-  http: ^1.6.0
 
 dev_dependencies:
   flutter_test:
