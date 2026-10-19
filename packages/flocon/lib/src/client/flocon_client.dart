@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io' show File;
 
 import '../config.dart';
 import '../core/app_infos.dart';
@@ -7,11 +8,12 @@ import '../core/logger.dart';
 import '../core/plugin.dart';
 import '../model/message_from_server.dart';
 import '../model/message_to_server.dart';
+import 'file_uploader.dart';
 import 'web_socket_client.dart';
 
 /// Owns the WebSocket connection and the plugins; sends messages to the desktop and
 /// routes incoming ones to the right plugin.
-class FloconClient implements FloconMessageSender {
+class FloconClient implements FloconMessageSender, FloconFileSender {
   FloconClient(this.config, {FloconWebSocketClient? webSocket, Future<FloconAppInfos>? appInfos})
       : _ws = webSocket ?? FloconWebSocketClient(),
         _appInfos = appInfos ?? FloconAppInfos.current();
@@ -78,5 +80,24 @@ class FloconClient implements FloconMessageSender {
         FloconLogger.logError('send failed', e);
       }
     });
+  }
+
+  @override
+  Future<void> sendFile(File file, {required String remotePath, required String requestId}) async {
+    try {
+      final infos = await _appInfos;
+      await FloconFileUploader(host: config.host, port: config.httpPort).upload(
+        file,
+        remotePath: remotePath,
+        requestId: requestId,
+        identity: FloconUploadIdentity(
+          deviceId: infos.deviceId,
+          appPackageName: infos.appPackageName,
+          appInstance: _appInstance,
+        ),
+      );
+    } catch (e) {
+      FloconLogger.logError('sendFile failed', e);
+    }
   }
 }

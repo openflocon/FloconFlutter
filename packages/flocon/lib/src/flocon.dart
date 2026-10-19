@@ -54,6 +54,9 @@ class Flocon {
   /// Lets a plugin package send messages to the desktop app. Null before [initialize].
   static FloconMessageSender? get messageSender => _client;
 
+  /// Lets a plugin package upload files to the desktop app. Null before [initialize].
+  static FloconFileSender? get fileSender => _client;
+
   static Future<void> _start(FloconClient client) async {
     while (true) {
       try {

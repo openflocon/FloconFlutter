@@ -43,12 +43,15 @@ dependencies:
     path: ../packages/flocon_device
   flocon_dio:
     path: ../packages/flocon_dio
+  flocon_files:
+    path: ../packages/flocon_files
   flocon_http:
     path: ../packages/flocon_http
   flocon_shared_preferences:
     path: ../packages/flocon_shared_preferences
   shared_preferences: ^2.5.0
   http: ^1.6.0
+  path_provider: ^2.1.5
 
 dev_dependencies:
   flutter_test:

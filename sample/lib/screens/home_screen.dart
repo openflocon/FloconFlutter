@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'analytics_screen.dart';
 import 'crash_screen.dart';
 import 'dio_screen.dart';
+import 'files_screen.dart';
 import 'http_screen.dart';
 import 'image_screen.dart';
 import 'mocks_screen.dart';
@@ -26,6 +27,7 @@ class HomeScreen extends StatelessWidget {
         ListTile(leading: const Icon(Icons.sync_alt), title: const Text('WebSocket'), subtitle: const Text('Manual WebSocket event logging'), onTap: () => open(const WebSocketScreen())),
         ListTile(leading: const Icon(Icons.analytics_outlined), title: const Text('Analytics'), subtitle: const Text('Events on streams, one table per stream'), onTap: () => open(const AnalyticsScreen())),
         ListTile(leading: const Icon(Icons.tune), title: const Text('Preferences'), subtitle: const Text('SharedPreferences, editable from the desktop'), onTap: () => open(const PreferencesScreen())),
+        ListTile(leading: const Icon(Icons.folder_outlined), title: const Text('Files'), subtitle: const Text('Create sample files to browse from the desktop'), onTap: () => open(const FilesScreen())),
         ListTile(leading: const Icon(Icons.bug_report_outlined), title: const Text('Crash reporter'), subtitle: const Text('Throw errors reported to Flocon'), onTap: () => open(const CrashScreen())),
         ListTile(leading: const Icon(Icons.table_chart_outlined), title: const Text('Tables'), subtitle: const Text('Rows of structured data'), onTap: () => open(const TableScreen())),
       ]),

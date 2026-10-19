@@ -14,6 +14,7 @@ Once the SDK is started, your app connects to the Flocon desktop app and shows, 
 | **Tables** | [`floconTable(name)`](#tables): any structured data you want to inspect while the app runs |
 | **Preferences** | [`floconRegisterSharedPreferences`](#preferences): browse and edit your `SharedPreferences` from the desktop |
 | **Device** | [`floconEnableDevicePlugin`](#device): your app shows with its icon in the desktop |
+| **Files** | [`floconEnableFilesPlugin`](#files): browse, download and delete the files of your app from the desktop |
 | **Crash reporter** | [`floconEnableCrashReporter`](#crash-reporter): uncaught Dart and Flutter errors, with their stack trace |
 
 ## Packages
@@ -26,6 +27,7 @@ The SDK is split in several packages, so that you only depend on the libraries y
 | `flocon_dio` | `FloconDioInterceptor` | `dio` |
 | `flocon_http` | `FloconHttpClient` | `http` |
 | `flocon_shared_preferences` | Preferences plugin | `shared_preferences` |
+| `flocon_files` | Files plugin | `path_provider` |
 | `flocon_crash_reporter` | Crash reporter plugin | `path_provider` |
 | `flocon_device` | Device plugin (app icon), has native code for Android, iOS and macOS | nothing else |
 
@@ -52,6 +54,10 @@ dependencies:
     git:
       url: https://github.com/openflocon/FloconFlutter.git
       path: packages/flocon_shared_preferences
+  flocon_files:
+    git:
+      url: https://github.com/openflocon/FloconFlutter.git
+      path: packages/flocon_files
   flocon_crash_reporter:
     git:
       url: https://github.com/openflocon/FloconFlutter.git
@@ -227,6 +233,24 @@ floconEnableDevicePlugin(); // answers the desktop's request for the app icon
 The icon is read natively (Android: launcher icon, iOS: largest icon of the `Info.plist`, macOS: the app icon)
 and sent as a base64 PNG of at most 300 pixels. Restarting the app from the desktop is not supported.
 
+## Files
+
+`import 'package:flocon_files/flocon_files.dart';`
+
+```dart
+Flocon.initialize();
+await floconEnableFilesPlugin();
+```
+
+The desktop can browse the folders of the app, download a file (it is uploaded to the desktop over HTTP, port 9024,
+streamed) and delete files, folders or the content of a folder.
+
+- `files` root: the data folder of the app on Android and iOS (the parent of the documents folder), the
+  application support folder on desktop. `caches` root: the cache folder. Change them with the `rootDirectory` and
+  `cachesDirectory` parameters.
+- Nothing outside of the two roots is reachable (`..` and symbolic links are resolved), and the roots
+  themselves are never deleted. A symbolic link is deleted, never followed.
+
 ## Crash reporter
 
 `import 'package:flocon_crash_reporter/flocon_crash_reporter.dart';`
@@ -275,6 +299,7 @@ To send messages, get the sender with `Flocon.messageSender`; find a registered 
 | **Images** | six images downloaded through Dio or `package:http` (switchable) and displayed in a grid |
 | **WebSocket** | open, send and close an echo connection, with each event logged |
 | **Analytics** | events on two streams (`firebase`, `amplitude`) and a batch of events |
+| **Files** | create text, JSON and big files in the documents and cache folders to browse and download from the desktop |
 | **Crash reporter** | throw an error from a tap, from a `Future` and from `build()` |
 | **Tables** | rows added to the `users` and `settings` tables |
 | **Preferences** | a `SharedPreferences` store with a String, bool, int, double and string list, editable from Flocon |
@@ -301,6 +326,7 @@ packages/
   flocon_dio/                   # Dio interceptor + FloconNetworkOptions
   flocon_http/                  # package:http client wrapper
   flocon_shared_preferences/    # Preferences plugin
+  flocon_files/                 # Files plugin
   flocon_crash_reporter/        # Crash reporter plugin
   flocon_device/                # Device plugin (app icon), with native code
 sample/                         # sample app
@@ -316,4 +342,4 @@ each message wrapped in an envelope (`deviceId`, `plugin`, `method`, `body`, `ap
 
 ## Status / TODO
 
-Not implemented yet: files, database, dashboard, deeplinks, mocks of WebSocket messages, and the other device features (restart app).
+Not implemented yet: database, dashboard, deeplinks, mocks of WebSocket messages, and the other device features (restart app).
