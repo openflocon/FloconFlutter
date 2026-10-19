@@ -7,5 +7,6 @@ export 'src/flocon.dart';
 export 'src/model/message_from_server.dart';
 export 'src/plugins/analytics/analytics_plugin.dart';
 export 'src/plugins/table/table_plugin.dart';
+export 'src/plugins/network/network_overrides.dart';
 export 'src/plugins/network/network_plugin.dart';
 export 'src/plugins/network/web_socket_event.dart';

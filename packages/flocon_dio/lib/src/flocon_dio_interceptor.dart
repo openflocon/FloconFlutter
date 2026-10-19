@@ -24,26 +24,118 @@ class FloconDioInterceptor extends Interceptor {
   FloconNetworkPlugin? get _network => _plugin ?? Flocon.networkPlugin;
 
   @override
-  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
+    FloconNetworkPlugin? plugin;
+    _Call? call;
+    FloconNetworkOverride? override;
     try {
-      final plugin = _network;
+      plugin = _network;
       if (plugin != null && (networkOptions.shouldLog?.call(options) ?? true)) {
+        final url = options.uri.toString();
+        final mock = plugin.findMock(url, options.method);
         final callId = const Uuid().v4();
         final startMs = DateTime.now().millisecondsSinceEpoch;
-        options.extra[_extraKey] = _Call(callId, Stopwatch()..start());
+        call = _Call(callId, Stopwatch()..start());
+        options.extra[_extraKey] = call;
         final body = _encodeBody(options.data);
         plugin.logRequest(
           callId: callId,
-          url: options.uri.toString(),
+          url: url,
           method: options.method,
           startTime: startMs,
           requestHeaders: _headers(options.headers),
           requestBody: body,
           requestSize: body == null ? null : utf8.encode(body).length,
+          isMocked: mock != null,
         );
+        // a mock or a bad network simulation answers instead of the network
+        override = await plugin.applyOverride(mock);
       }
     } catch (_) {}
-    handler.next(options);
+
+    if (override == null || plugin == null || call == null) {
+      handler.next(options);
+      return;
+    }
+    _answer(options, handler, plugin, call, override);
+  }
+
+  void _answer(
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+    FloconNetworkPlugin plugin,
+    _Call call,
+    FloconNetworkOverride override,
+  ) {
+    switch (override) {
+      case FloconFakeError():
+        plugin.logResponse(
+          callId: call.id,
+          durationMs: call.elapsedMs,
+          error: override.className,
+          isMocked: override.isMocked,
+        );
+        handler.reject(
+          DioException(
+            requestOptions: options,
+            type: switch (override.kind) {
+              FloconErrorKind.timeout => DioExceptionType.connectionTimeout,
+              FloconErrorKind.connection => DioExceptionType.connectionError,
+              FloconErrorKind.unknown => DioExceptionType.unknown,
+            },
+            error: override.className,
+            message: override.className,
+          ),
+        );
+      case FloconFakeResponse():
+        final headers = override.headersWithContentType;
+        plugin.logResponse(
+          callId: call.id,
+          durationMs: call.elapsedMs,
+          httpCode: override.statusCode,
+          contentType: headers['content-type'],
+          body: override.body,
+          headers: headers,
+          size: utf8.encode(override.body).length,
+          requestHeaders: _headers(options.headers),
+          isMocked: override.isMocked,
+        );
+        final response = Response<dynamic>(
+          requestOptions: options,
+          statusCode: override.statusCode,
+          data: _decode(override.body, options.responseType),
+          headers: Headers.fromMap({for (final e in headers.entries) e.key: [e.value]}),
+          isRedirect: false,
+        );
+        final validate = options.validateStatus;
+        if (validate(override.statusCode)) {
+          handler.resolve(response);
+        } else {
+          handler.reject(DioException.badResponse(
+            statusCode: override.statusCode,
+            requestOptions: options,
+            response: response,
+          ));
+        }
+    }
+  }
+
+  /// The body of a fake response, in the shape Dio would have produced for `responseType`.
+  static dynamic _decode(String body, ResponseType type) {
+    switch (type) {
+      case ResponseType.bytes:
+        return utf8.encode(body);
+      case ResponseType.plain:
+      case ResponseType.stream:
+        return body;
+      case ResponseType.json:
+        if (body.isEmpty) return body;
+        try {
+          return jsonDecode(body);
+        } catch (_) {
+          return body;
+        }
+    }
   }
 
   @override

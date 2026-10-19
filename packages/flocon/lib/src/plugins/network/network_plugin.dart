@@ -1,21 +1,40 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:uuid/uuid.dart';
 
 import '../../core/plugin.dart';
 import '../../model/message_from_server.dart';
+import 'network_overrides.dart';
 import 'web_socket_event.dart';
 
 /// Sends the network calls and WebSocket events of the app to the Flocon desktop app.
 class FloconNetworkPlugin implements FloconPlugin {
-  FloconNetworkPlugin({required FloconMessageSender sender}) : _sender = sender;
+  FloconNetworkPlugin({
+    required FloconMessageSender sender,
+    Random? random,
+    Future<void> Function(Duration)? delay,
+  })  : _sender = sender,
+        _random = random ?? Random(),
+        _delay = delay ?? Future<void>.delayed;
 
   static const name = 'network';
   static const methodLogRequest = 'logNetworkCallRequest';
   static const methodLogResponse = 'logNetworkCallResponse';
   static const methodLogWebSocketEvent = 'logWebSocketEvent';
+  static const methodSetupMocks = 'setupMocks';
+  static const methodSetupBadNetworkConfig = 'setupBadNetworkConfig';
 
   final FloconMessageSender _sender;
+  final Random _random;
+  final Future<void> Function(Duration) _delay;
+
+  /// The mocks configured from the desktop. The first one matching a call wins.
+  List<FloconMock> mocks = const [];
+
+  /// The bad network simulation configured from the desktop, if any.
+  FloconBadQualityConfig? badQualityConfig;
 
   @override
   String get pluginName => name;
@@ -25,7 +44,34 @@ class FloconNetworkPlugin implements FloconPlugin {
 
   @override
   void onMessageReceived(FloconMessageFromServer message) {
-    // TODO: network mocks and bad network simulation, configured from the desktop
+    switch (message.method) {
+      case methodSetupMocks:
+        mocks = parseMocks(message.body);
+      case methodSetupBadNetworkConfig:
+        badQualityConfig = parseBadQualityConfig(message.body);
+    }
+  }
+
+  /// The mock that answers this call, if any. Call it before [logRequest] to set `isMocked`.
+  FloconMock? findMock(String url, String method) {
+    for (final mock in mocks) {
+      if (mock.matches(url, method)) return mock;
+    }
+    return null;
+  }
+
+  /// Applies the mock or the bad network simulation: waits for the configured delay, then returns what
+  /// the HTTP adapter must answer instead of the real call, or null to perform the real call.
+  Future<FloconNetworkOverride?> applyOverride(FloconMock? mock) async {
+    if (mock != null) {
+      if (mock.delay > Duration.zero) await _delay(mock.delay);
+      return mock.toOverride();
+    }
+    final config = badQualityConfig;
+    if (config == null) return null;
+    if (config.shouldSimulateLatency(_random)) await _delay(config.randomLatency(_random));
+    if (config.shouldFail(_random)) return config.selectRandomError(_random)?.toOverride();
+    return null;
   }
 
   /// Optional values are sent as explicit `null`s, as the desktop expects.
@@ -37,6 +83,7 @@ class FloconNetworkPlugin implements FloconPlugin {
     required Map<String, String> requestHeaders,
     String? requestBody,
     int? requestSize,
+    bool isMocked = false,
   }) =>
       _send(methodLogRequest, {
         'floconCallId': callId,
@@ -47,7 +94,7 @@ class FloconNetworkPlugin implements FloconPlugin {
         'requestHeaders': requestHeaders,
         'requestBody': requestBody,
         'requestSize': requestSize,
-        'isMocked': false,
+        'isMocked': isMocked,
       });
 
   void logResponse({
@@ -61,11 +108,12 @@ class FloconNetworkPlugin implements FloconPlugin {
     String? error,
     Map<String, String>? requestHeaders,
     bool isImage = false,
+    bool isMocked = false,
   }) =>
       _send(methodLogResponse, {
         'floconCallId': callId,
         'floconNetworkType': 'http',
-        'isMocked': false,
+        'isMocked': isMocked,
         'durationMs': durationMs,
         'isImage': isImage,
         'requestHeaders': requestHeaders,

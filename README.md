@@ -8,6 +8,7 @@ Once the SDK is started, your app connects to the Flocon desktop app and shows, 
 | Feature | How |
 | --- | --- |
 | **Network** (HTTP) | [`FloconDioInterceptor`](#dio) for [Dio](https://pub.dev/packages/dio), [`FloconHttpClient`](#packagehttp) for [`package:http`](https://pub.dev/packages/http). Headers, bodies, timing, errors, images. Separate packages, so you only pull the HTTP library you use |
+| **Network mocks** and **bad network** | configured from the desktop, applied by the Dio and `http` adapters, nothing to code (see [Mocks](#mocks-and-bad-network)) |
 | **Network** (WebSocket) | [`floconLogWebSocketEvent`](#websockets): log the events of the connections you want to inspect |
 | **Analytics** | [`floconAnalytics(stream)`](#analytics): one table per stream (e.g. per provider) |
 | **Tables** | [`floconTable(name)`](#tables): any structured data you want to inspect while the app runs |
@@ -146,6 +147,24 @@ FloconHttpClient(
 );
 ```
 
+### Mocks and bad network
+
+Both are configured from the Flocon desktop app, and applied by `FloconDioInterceptor` and `FloconHttpClient`:
+
+- **Mocks** answer the calls whose URL (a regular expression that must match the whole URL) and method match,
+  with the HTTP code, body, media type, headers and delay you set, or with an error. The first matching mock wins,
+  and the call never reaches the network. Mocked calls are flagged in the desktop.
+- **Bad network** adds random latency and makes random calls fail, with HTTP errors or exceptions, picked by weight.
+  Mocks take precedence.
+
+The exception names sent by the desktop are Java class names. They are mapped to what the library throws:
+a name containing `Timeout` gives a timeout (`DioExceptionType.connectionTimeout` / `TimeoutException`),
+the connection ones (`Socket`, `Connect`, `UnknownHost`, `SSL`) a connection error
+(`DioExceptionType.connectionError` / `ClientException`), anything else an unknown error; the original name is the message.
+
+Mocks and the configuration are kept in memory: the desktop sends them again at each connection.
+Add the interceptor last, so the mock is not seen by interceptors added after it. Mocks of WebSocket messages are not supported.
+
 ### WebSockets
 
 WebSocket traffic cannot be intercepted automatically: log the events of the connections you want to inspect.
@@ -252,6 +271,7 @@ To send messages, get the sender with `Flocon.messageSender`; find a registered 
 | --- | --- |
 | **Dio** | GET (with query), POST, PUT, DELETE, 404, 500, network error, slow request, `FormData` upload |
 | **package:http** | the same calls, with a multipart upload |
+| **Mocks and bad network** | a call you can mock or degrade from the desktop, shown with the result and its duration |
 | **Images** | six images downloaded through Dio or `package:http` (switchable) and displayed in a grid |
 | **WebSocket** | open, send and close an echo connection, with each event logged |
 | **Analytics** | events on two streams (`firebase`, `amplitude`) and a batch of events |
@@ -296,5 +316,4 @@ each message wrapped in an envelope (`deviceId`, `plugin`, `method`, `body`, `ap
 
 ## Status / TODO
 
-Not implemented yet (they are not in FloconSwift's network plugin either): network mocks and bad-network
-simulation configured from the desktop, files, and the other device features (restart app).
+Not implemented yet: files, database, dashboard, deeplinks, mocks of WebSocket messages, and the other device features (restart app).

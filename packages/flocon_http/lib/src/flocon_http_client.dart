@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -39,6 +40,7 @@ class FloconHttpClient extends http.BaseClient {
 
     final callId = const Uuid().v4();
     final stopwatch = Stopwatch()..start();
+    final mock = plugin.findMock(request.url.toString(), request.method);
     try {
       final body = request is http.Request ? (request.body.isEmpty ? null : request.body) : null;
       plugin.logRequest(
@@ -49,8 +51,51 @@ class FloconHttpClient extends http.BaseClient {
         requestHeaders: Map.of(request.headers),
         requestBody: request is http.MultipartRequest ? _describeMultipart(request) : body,
         requestSize: body == null ? request.contentLength : utf8.encode(body).length,
+        isMocked: mock != null,
       );
     } catch (_) {}
+
+    // a mock or a bad network simulation answers instead of the network
+    FloconNetworkOverride? override;
+    try {
+      override = await plugin.applyOverride(mock);
+    } catch (_) {}
+    switch (override) {
+      case final FloconFakeError error:
+        _safe(() => plugin.logResponse(
+              callId: callId,
+              durationMs: stopwatch.elapsedMicroseconds / 1000,
+              error: error.className,
+              isMocked: error.isMocked,
+            ));
+        throw switch (error.kind) {
+          FloconErrorKind.timeout => TimeoutException(error.className),
+          _ => http.ClientException(error.className, request.url),
+        };
+      case final FloconFakeResponse fake:
+        final headers = fake.headersWithContentType;
+        final bytes = utf8.encode(fake.body);
+        _safe(() => plugin.logResponse(
+              callId: callId,
+              durationMs: stopwatch.elapsedMicroseconds / 1000,
+              httpCode: fake.statusCode,
+              contentType: headers['content-type'],
+              body: fake.body,
+              headers: headers,
+              size: bytes.length,
+              requestHeaders: Map.of(request.headers),
+              isMocked: fake.isMocked,
+            ));
+        return http.StreamedResponse(
+          http.ByteStream.fromBytes(bytes),
+          fake.statusCode,
+          contentLength: bytes.length,
+          request: request,
+          headers: {for (final e in headers.entries) e.key.toLowerCase(): e.value},
+        );
+      case null:
+        break;
+    }
 
     final http.StreamedResponse streamed;
     try {
