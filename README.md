@@ -13,6 +13,7 @@ Once the SDK is started, your app connects to the Flocon desktop app and shows, 
 | **Tables** | [`floconTable(name)`](#tables): any structured data you want to inspect while the app runs |
 | **Preferences** | [`floconRegisterSharedPreferences`](#preferences): browse and edit your `SharedPreferences` from the desktop |
 | **Device** | [`floconEnableDevicePlugin`](#device): your app shows with its icon in the desktop |
+| **Crash reporter** | [`floconEnableCrashReporter`](#crash-reporter): uncaught Dart and Flutter errors, with their stack trace |
 
 ## Packages
 
@@ -24,6 +25,7 @@ The SDK is split in several packages, so that you only depend on the libraries y
 | `flocon_dio` | `FloconDioInterceptor` | `dio` |
 | `flocon_http` | `FloconHttpClient` | `http` |
 | `flocon_shared_preferences` | Preferences plugin | `shared_preferences` |
+| `flocon_crash_reporter` | Crash reporter plugin | `path_provider` |
 | `flocon_device` | Device plugin (app icon), has native code for Android, iOS and macOS | nothing else |
 
 ## Installation
@@ -49,6 +51,10 @@ dependencies:
     git:
       url: https://github.com/openflocon/FloconFlutter.git
       path: packages/flocon_shared_preferences
+  flocon_crash_reporter:
+    git:
+      url: https://github.com/openflocon/FloconFlutter.git
+      path: packages/flocon_crash_reporter
   flocon_device:
     git:
       url: https://github.com/openflocon/FloconFlutter.git
@@ -202,6 +208,22 @@ floconEnableDevicePlugin(); // answers the desktop's request for the app icon
 The icon is read natively (Android: launcher icon, iOS: largest icon of the `Info.plist`, macOS: the app icon)
 and sent as a base64 PNG of at most 300 pixels. Restarting the app from the desktop is not supported.
 
+## Crash reporter
+
+`import 'package:flocon_crash_reporter/flocon_crash_reporter.dart';`
+
+```dart
+Flocon.initialize();
+await floconEnableCrashReporter();
+```
+
+It hooks `FlutterError.onError` (build, layout, gestures...) and `PlatformDispatcher.instance.onError`
+(uncaught asynchronous errors); the handlers already set (Crashlytics, Sentry...) keep working, they are called
+after the report. Each error is saved on disk first, sent right away when the desktop is connected, and otherwise
+sent on the next connection, even after a restart, then deleted.
+
+Native crashes (Kotlin, Java, Swift, C++) are not reported.
+
 ## Custom plugins
 
 ```dart
@@ -233,6 +255,7 @@ To send messages, get the sender with `Flocon.messageSender`; find a registered 
 | **Images** | six images downloaded through Dio or `package:http` (switchable) and displayed in a grid |
 | **WebSocket** | open, send and close an echo connection, with each event logged |
 | **Analytics** | events on two streams (`firebase`, `amplitude`) and a batch of events |
+| **Crash reporter** | throw an error from a tap, from a `Future` and from `build()` |
 | **Tables** | rows added to the `users` and `settings` tables |
 | **Preferences** | a `SharedPreferences` store with a String, bool, int, double and string list, editable from Flocon |
 
@@ -258,6 +281,7 @@ packages/
   flocon_dio/                   # Dio interceptor + FloconNetworkOptions
   flocon_http/                  # package:http client wrapper
   flocon_shared_preferences/    # Preferences plugin
+  flocon_crash_reporter/        # Crash reporter plugin
   flocon_device/                # Device plugin (app icon), with native code
 sample/                         # sample app
 tool/check.sh

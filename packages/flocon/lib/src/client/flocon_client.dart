@@ -25,6 +25,8 @@ class FloconClient implements FloconMessageSender {
   // Serial chain keeps messages ordered while the app infos are still loading.
   Future<void> _outbox = Future.value();
 
+  bool get isConnected => _ws.isConnected;
+
   void register(FloconPlugin plugin) => _plugins[plugin.pluginName] = plugin;
 
   T? plugin<T extends FloconPlugin>() {

@@ -23,6 +23,9 @@ class Flocon {
 
   static bool get isInitialized => _client != null;
 
+  /// Whether the connection to the desktop app is currently open.
+  static bool get isConnected => _client?.isConnected ?? false;
+
   /// The network plugin, or null before [initialize].
   static FloconNetworkPlugin? get networkPlugin => _client?.plugin<FloconNetworkPlugin>();
 

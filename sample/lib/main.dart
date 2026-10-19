@@ -1,12 +1,13 @@
 import 'dart:io';
 
 import 'package:flocon/flocon.dart';
+import 'package:flocon_crash_reporter/flocon_crash_reporter.dart';
 import 'package:flocon_device/flocon_device.dart';
 import 'package:flutter/material.dart';
 
 import 'screens/home_screen.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Android emulator reaches the host machine through 10.0.2.2.
   // On a physical device, use the local IP of the computer running Flocon.
@@ -14,6 +15,7 @@ void main() {
     config: FloconConfig(host: Platform.isAndroid ? '10.0.2.2' : 'localhost'),
   );
   floconEnableDevicePlugin(); // the app shows with its icon in Flocon
+  await floconEnableCrashReporter(); // uncaught errors are reported to Flocon
   runApp(const SampleApp());
 }
 
