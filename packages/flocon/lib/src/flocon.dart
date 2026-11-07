@@ -9,6 +9,7 @@ import 'core/logger.dart';
 import 'core/plugin.dart';
 import 'core/storage.dart';
 import 'plugins/analytics/analytics_plugin.dart';
+import 'plugins/dashboard/dashboard_plugin.dart';
 import 'plugins/deeplinks/deeplinks_plugin.dart';
 import 'plugins/feature_flags/feature_flags_plugin.dart';
 import 'plugins/network/network_plugin.dart';
@@ -65,6 +66,9 @@ class Flocon {
   static FloconDeeplinksPlugin? get deeplinksPlugin =>
       _client?.plugin<FloconDeeplinksPlugin>();
 
+  static FloconDashboardPlugin? get dashboardPlugin =>
+      _client?.plugin<FloconDashboardPlugin>();
+
   /// Starts the SDK. It connects in the background to `config.host` (`localhost` by default), retrying every
   /// 3 seconds until a desktop is reachable, and again whenever the connection drops; what the app logs is kept in
   /// memory meanwhile. Calling it twice has no effect.
@@ -82,9 +86,11 @@ class Flocon {
     client.register(FloconTimelinePlugin(sender: client));
     client.register(FloconFeatureFlagsPlugin(sender: client));
     client.register(FloconDeeplinksPlugin(sender: client));
+    client.register(FloconDashboardPlugin(sender: client));
     client.register(FloconTimelinePlugin(sender: client));
     client.register(FloconFeatureFlagsPlugin(sender: client));
     client.register(FloconDeeplinksPlugin(sender: client));
+    client.register(FloconDashboardPlugin(sender: client));
     _client = client;
     final connections = FloconConnections(
       client: client,

@@ -14,6 +14,7 @@ Once the SDK is started, your app connects to the Flocon desktop app and shows, 
 | **Feature flags** | [`floconFeatureFlags(provider)`](#feature-flags): the flags your app evaluated, with their variant and payload |
 | **Timeline** | [`floconTimeline`](#timeline): navigation, user actions, lifecycle and your own events |
 | **Deeplinks** | [`floconRegisterDeeplinks`](#deeplinks): the deeplinks of your app, with their parameters |
+| **Dashboard** | [`floconDashboard`](#dashboard): values of your app updated live, and buttons, inputs and forms that run actions in it |
 | **Tables** | [`floconTable(name)`](#tables): any structured data you want to inspect while the app runs |
 | **Preferences** | [`floconRegisterSharedPreferences`](#preferences): browse and edit your `SharedPreferences` from the desktop |
 | **App icon** | your app shows with its icon in the desktop, nothing to set up |
@@ -330,6 +331,38 @@ floconRegisterDeeplinks(
 
 A variable is shared by several deeplinks, and edited once in the desktop app.
 
+## Dashboard
+
+A dashboard shows values of the app, and runs actions in it from the desktop app. A section is either static, or rebuilt
+each time a `ValueListenable` (`FloconSection.listen`) or a `Stream` (`FloconSection.fromStream`) emits:
+
+```dart
+// keep the handle: the dashboard stops following the sections when you call handle.dispose()
+final handle = floconDashboard('main', [
+  FloconSection.listen('User', session.user, (user) => [
+    FloconText('name', user.name),
+    FloconText('status', user.status, color: 0xFFFF0000), // ARGB
+    FloconButton('Log out', id: 'logout', onClick: session.logOut),
+    FloconTextField(id: 'rename', label: 'Rename', value: user.name, onSubmitted: session.rename),
+    FloconCheckBox(id: 'premium', label: 'Premium', value: user.isPremium, onChanged: session.setPremium),
+  ]),
+  FloconSection('Build', [
+    FloconPlainText('commit', buildCommit),
+    FloconJson('config', configJson),
+    FloconMarkdown('Release note', '# 1.0\nFirst **release**'),
+    FloconHtml('About', '<h1>MyApp</h1>'),
+  ]),
+  FloconForm('Create user', [
+    FloconTextField(id: 'name', label: 'Name', value: ''),
+    FloconCheckBox(id: 'admin', label: 'Admin', value: false),
+  ], submitText: 'Create', onSubmitted: (values) => session.createUser(values['name'] ?? '', values['admin'] == 'true')),
+]);
+```
+
+Element identifiers must be unique in their dashboard. A form sends the values of its inputs together, keyed by their
+identifiers, with check boxes as `'true'` or `'false'`. The dashboard is sent once every reactive section has a value, and
+again on each connection.
+
 ## Tables
 
 Columns are created from the names used in the logged rows.
@@ -470,4 +503,4 @@ each message wrapped in an envelope (`deviceId`, `plugin`, `method`, `body`, `ap
 
 ## Status / TODO
 
-Not implemented yet: database, dashboard, mocks of WebSocket messages, and the other device features (restart app).
+Not implemented yet: database, mocks of WebSocket messages, and the other device features (restart app).
