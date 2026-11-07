@@ -11,6 +11,9 @@ Once the SDK is started, your app connects to the Flocon desktop app and shows, 
 | **Network mocks** and **bad network** | configured from the desktop, applied by the Dio and `http` adapters, nothing to code (see [Mocks](#mocks-and-bad-network)) |
 | **Network** (WebSocket) | [`floconLogWebSocketEvent`](#websockets): log the events of the connections you want to inspect |
 | **Analytics** | [`floconAnalytics(stream)`](#analytics): one table per stream (e.g. per provider) |
+| **Feature flags** | [`floconFeatureFlags(provider)`](#feature-flags): the flags your app evaluated, with their variant and payload |
+| **Timeline** | [`floconTimeline`](#timeline): navigation, user actions, lifecycle and your own events |
+| **Deeplinks** | [`floconRegisterDeeplinks`](#deeplinks): the deeplinks of your app, with their parameters |
 | **Tables** | [`floconTable(name)`](#tables): any structured data you want to inspect while the app runs |
 | **Preferences** | [`floconRegisterSharedPreferences`](#preferences): browse and edit your `SharedPreferences` from the desktop |
 | **App icon** | your app shows with its icon in the desktop, nothing to set up |
@@ -261,6 +264,72 @@ floconAnalytics('firebase').logEvents([
 ]);
 ```
 
+## Feature flags
+
+Register the flags your app evaluated, one provider per feature flag system (Firebase Remote Config, Statsig, an in-house
+one...). No dependency on their SDKs: each call replaces the flags of the provider, and they are sent again when the app
+reconnects to the desktop:
+
+```dart
+floconFeatureFlags('firebase').register([
+  FloconFeatureFlag(name: 'new_checkout', state: FloconFeatureFlagState.custom, variant: 'treatment', payload: '{"steps": 3}'),
+  FloconFeatureFlag(name: 'dark_mode', state: FloconFeatureFlagState.on, variant: 'on'),
+  FloconFeatureFlag(name: 'onboarding_v2', state: FloconFeatureFlagState.off, variant: 'control'),
+]);
+```
+
+`state` (`on`, `off`, or `custom` for an experiment arm or a value) colors the variant in the desktop. The desktop lists
+the flags with a search, and shows the payload (formatted when it is json) when you click a flag.
+
+## Timeline
+
+Log what happens in your app: the events appear in the Flocon timeline, with their time.
+
+```dart
+// typed events, without a level
+floconTimeline.logNavigation('CheckoutScreen', params: {'from': 'CartScreen'});
+floconTimeline.logUserAction('tap_buy', params: {'sku': 'premium_yearly'});
+floconTimeline.logLifecycle('resumed');
+floconTimeline.log(const TimelineType('billing'), 'Purchase started');
+
+// tagged events, with a level: debug, info (default), warning or error
+floconTimeline.logTagged('billing', 'Purchase failed', params: {'sku': 'premium_yearly'}, level: TimelineLevel.error);
+```
+
+`navigation`, `userAction` and `lifecycle` are shown with their own icon; any other type or tag is a custom one, listed in
+the Type filter. A typed call has no level, a tagged call always has one. Params are text only.
+
+Two observers log the navigation and the lifecycle for you:
+
+```dart
+MaterialApp(navigatorObservers: [FloconNavigatorObserver()], /* ... */);
+FloconLifecycleObserver.start(); // resumed, inactive, paused, hidden, detached
+```
+
+A route is named by its `RouteSettings.name`, otherwise by its type: name your routes to read them in the timeline.
+
+## Deeplinks
+
+List the deeplinks of your app, writing the parts to fill in between brackets. The desktop opens them itself:
+
+```dart
+floconRegisterDeeplinks(
+  [
+    FloconDeeplink('myapp://home', label: 'Home'),
+    FloconDeeplink(
+      'myapp://user/[userId]',
+      label: 'User',
+      description: 'Open the profile of a user',
+      parameters: [FloconDeeplinkParameter.autoComplete('userId', ['Florent', 'David'])],
+    ),
+    FloconDeeplink('myapp://[env]/settings', parameters: [FloconDeeplinkParameter.variable('env', variableName: 'env')]),
+  ],
+  variables: [FloconDeeplinkVariable('env', suggestions: ['staging', 'production'])],
+);
+```
+
+A variable is shared by several deeplinks, and edited once in the desktop app.
+
 ## Tables
 
 Columns are created from the names used in the logged rows.
@@ -401,4 +470,4 @@ each message wrapped in an envelope (`deviceId`, `plugin`, `method`, `body`, `ap
 
 ## Status / TODO
 
-Not implemented yet: database, dashboard, deeplinks, mocks of WebSocket messages, and the other device features (restart app).
+Not implemented yet: database, dashboard, mocks of WebSocket messages, and the other device features (restart app).
