@@ -1,36 +1,99 @@
 import 'package:flutter/material.dart';
 
-import 'analytics_screen.dart';
-import 'crash_screen.dart';
-import 'dio_screen.dart';
-import 'files_screen.dart';
-import 'http_screen.dart';
-import 'image_screen.dart';
-import 'mocks_screen.dart';
-import 'preferences_screen.dart';
-import 'table_screen.dart';
-import 'web_socket_screen.dart';
+import '../theme/sample_screen.dart';
+import '../theme/sample_theme.dart';
+import '../widgets/connection_chip.dart';
+import '../widgets/sample_widgets.dart';
 
+/// Lists the plugins: the four main ones as tiles, the others as rows.
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    void open(Widget screen) => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => screen));
-    return Scaffold(
-      appBar: AppBar(title: const Text('Flocon Flutter sample')),
-      body: ListView(children: [
-        ListTile(leading: const Icon(Icons.cloud_outlined), title: const Text('Dio'), subtitle: const Text('HTTP calls with FloconDioInterceptor'), onTap: () => open(const DioScreen())),
-        ListTile(leading: const Icon(Icons.http), title: const Text('package:http'), subtitle: const Text('HTTP calls with FloconHttpClient'), onTap: () => open(const HttpScreen())),
-        ListTile(leading: const Icon(Icons.image_outlined), title: const Text('Images'), subtitle: const Text('Download and display images'), onTap: () => open(const ImageScreen())),
-        ListTile(leading: const Icon(Icons.science_outlined), title: const Text('Mocks and bad network'), subtitle: const Text('Try the mocks and the simulation set from the desktop'), onTap: () => open(const MocksScreen())),
-        ListTile(leading: const Icon(Icons.sync_alt), title: const Text('WebSocket'), subtitle: const Text('Manual WebSocket event logging'), onTap: () => open(const WebSocketScreen())),
-        ListTile(leading: const Icon(Icons.analytics_outlined), title: const Text('Analytics'), subtitle: const Text('Events on streams, one table per stream'), onTap: () => open(const AnalyticsScreen())),
-        ListTile(leading: const Icon(Icons.tune), title: const Text('Preferences'), subtitle: const Text('SharedPreferences, editable from the desktop'), onTap: () => open(const PreferencesScreen())),
-        ListTile(leading: const Icon(Icons.folder_outlined), title: const Text('Files'), subtitle: const Text('Create sample files to browse from the desktop'), onTap: () => open(const FilesScreen())),
-        ListTile(leading: const Icon(Icons.bug_report_outlined), title: const Text('Crash reporter'), subtitle: const Text('Throw errors reported to Flocon'), onTap: () => open(const CrashScreen())),
-        ListTile(leading: const Icon(Icons.table_chart_outlined), title: const Text('Tables'), subtitle: const Text('Rows of structured data'), onTap: () => open(const TableScreen())),
-      ]),
-    );
-  }
+  Widget build(BuildContext context) => Scaffold(
+        body: SafeArea(
+          child: ListView(padding: const EdgeInsets.all(20), children: [
+            Row(children: [
+              const Expanded(
+                child: Text(
+                  'FLOCON SAMPLE',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, letterSpacing: 1.2, color: SampleTheme.inkMuted),
+                ),
+              ),
+              const SizedBox(width: 8),
+              const ConnectionChip(),
+            ]),
+            const SizedBox(height: 12),
+            const Text('Try every plugin,\none screen each', style: TextStyle(fontSize: 34, fontWeight: FontWeight.w800, height: 1.1)),
+            const SizedBox(height: 8),
+            const Text('Trigger an action here, find it in Flocon Desktop.', style: TextStyle(color: SampleTheme.inkMuted)),
+            const SizedBox(height: 24),
+            GridView(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                mainAxisExtent: 152,
+              ),
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              children: [for (final s in SampleScreen.main) _Tile(s)],
+            ),
+            const SizedBox(height: 24),
+            SampleSection(title: 'More plugins', children: [for (final s in SampleScreen.others) _Row(s)]),
+          ]),
+        ),
+      );
+}
+
+class _Tile extends StatelessWidget {
+  const _Tile(this.screen);
+  final SampleScreen screen;
+
+  @override
+  Widget build(BuildContext context) => InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => Navigator.of(context).pushNamed(screen.route),
+        child: Ink(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: SampleTheme.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: SampleTheme.line),
+          ),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            SampleCategoryIcon(icon: screen.icon, category: screen.category, size: 44),
+            const Spacer(),
+            Text(screen.title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700), maxLines: 1, overflow: TextOverflow.ellipsis),
+            const SizedBox(height: 2),
+            Text(screen.subtitle, style: const TextStyle(fontSize: 12, color: SampleTheme.inkMuted), maxLines: 2, overflow: TextOverflow.ellipsis),
+          ]),
+        ),
+      );
+}
+
+class _Row extends StatelessWidget {
+  const _Row(this.screen);
+  final SampleScreen screen;
+
+  @override
+  Widget build(BuildContext context) => InkWell(
+        onTap: () => Navigator.of(context).pushNamed(screen.route),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(children: [
+            SampleCategoryIcon(icon: screen.icon, category: screen.category),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(screen.title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                Text(screen.subtitle, style: const TextStyle(fontSize: 13, color: SampleTheme.inkMuted)),
+              ]),
+            ),
+            const Icon(Icons.chevron_right, size: 20, color: SampleTheme.inkFaint),
+          ]),
+        ),
+      );
 }

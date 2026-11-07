@@ -157,8 +157,9 @@ FloconQrScannerView(onResult: (result) {
 })
 ```
 
-Camera permission: `NSCameraUsageDescription` (iOS, macOS), the `CAMERA` permission (Android, `minSdk` 23),
-`com.apple.security.device.camera` in the macOS entitlements.
+Camera permission: `NSCameraUsageDescription` (iOS, macOS), the `CAMERA` permission (Android),
+`com.apple.security.device.camera` in the macOS entitlements. On Android the camera libraries of `mobile_scanner` need `minSdk` 23,
+`compileSdk` 36 and the Android Gradle plugin 8.9.1 or higher (see `sample/android`).
 
 ### Console logs
 
@@ -493,20 +494,24 @@ To send messages, get the sender with `Flocon.messageSender`; find a registered 
 
 ## Sample
 
-`sample/` is a Flutter app (iOS, Android, macOS). Its home screen links to one screen per feature:
+`sample/` is a Flutter app (Android, iOS, macOS) that looks like the Flocon Desktop dark theme, and like the demos of the
+Android and Swift SDKs: the home shows the four main plugins as tiles and the others as rows, a chip next to the title shows
+the connection and opens the connection screen (address, QR code, disconnect), and **each plugin has its own screen**, made of
+rows with a *Run* button that shows ✓ and the duration, or ✕ and the error.
 
 | Screen | Content |
 | --- | --- |
-| **Dio** | GET (with query), POST, PUT, DELETE, 404, 500, network error, slow request, `FormData` upload |
-| **package:http** | the same calls, with a multipart upload |
-| **Mocks and bad network** | a call you can mock or degrade from the desktop, shown with the result and its duration |
-| **Images** | six images downloaded through Dio or `package:http` (switchable) and displayed in a grid |
-| **WebSocket** | open, send and close an echo connection, with each event logged |
-| **Analytics** | events on two streams (`firebase`, `amplitude`) and a batch of events |
-| **Files** | create text, JSON and big files in the documents and cache folders to browse and download from the desktop |
-| **Crash reporter** | throw an error from a tap, from a `Future` and from `build()` |
-| **Tables** | rows added to the `users` and `settings` tables |
-| **Preferences** | a `SharedPreferences` store with a String, bool, int, double and string list, editable from Flocon |
+| **Network** | Dio and `package:http` calls (GET, POST, PUT, DELETE, image, slow, upload), errors (404, 500, unknown host), a WebSocket echo with the events logged by hand, and two calls to try the mocks and the bad network set from the desktop |
+| **Database** | `dogs.sqlite` (sqflite) created and registered, rows inserted and queries logged |
+| **Analytics** | your own event on any stream, and presets for Firebase- and Amplitude-style providers |
+| **Feature flags** | Firebase and Statsig flags with variants and payloads, registered at start and shuffled on demand |
+| **Preferences** | the `SharedPreferences` store, to edit and delete from the desktop |
+| **Files** | text, JSON and big files in the documents, support and cache folders, and a registered `Exports` folder |
+| **Dashboard & Tables** | a live user section, a form, buttons and inputs that run actions in the app, and table rows |
+| **Deeplinks** | the links listed in the desktop, opened inside the sample |
+| **Timeline** | typed, tagged and custom logs; the screen changes and the app lifecycle are logged automatically |
+| **Images** | six images loaded through Dio or `package:http` and displayed in a grid |
+| **Crash reporter** | errors thrown from a callback, a `Future` and `build()` |
 
 Start the Flocon desktop app, then:
 
@@ -514,7 +519,9 @@ Start the Flocon desktop app, then:
 cd sample && flutter run -d macos
 ```
 
-The sample picks `10.0.2.2` on Android and `localhost` elsewhere (edit `sample/lib/main.dart` for a physical device).
+The sample picks `10.0.2.2` on Android and `localhost` elsewhere. On a physical device, use the connection screen (type the IP
+of the computer, or scan its QR code). The camera permissions of the QR scanner are declared for the three platforms
+(Android `minSdk` 23 / `compileSdk` 36 / AGP 8.9.1, `NSCameraUsageDescription`, the macOS camera entitlement).
 
 ## Development
 
@@ -534,7 +541,7 @@ packages/
   flocon_crash_reporter/        # Crash reporter plugin
   flocon_database/              # Database plugin
   flocon_qr_scanner/            # QR code scanner view
-sample/                         # sample app
+sample/                         # sample app, one screen per plugin
 tool/check.sh
 ```
 

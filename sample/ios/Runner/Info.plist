@@ -45,6 +45,8 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Flocon scans the QR code of the desktop app to connect.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Flocon connects to the desktop app on your local network.</string>
 </dict>
