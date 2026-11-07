@@ -14,6 +14,7 @@ Once the SDK is started, your app connects to the Flocon desktop app and shows, 
 | **Feature flags** | [`floconFeatureFlags(provider)`](#feature-flags): the flags your app evaluated, with their variant and payload |
 | **Timeline** | [`floconTimeline`](#timeline): navigation, user actions, lifecycle and your own events |
 | **Deeplinks** | [`floconRegisterDeeplinks`](#deeplinks): the deeplinks of your app, with their parameters |
+| **Databases** | [`floconEnableDatabasePlugin`](#databases): query the SQLite databases of your app, and see the queries it runs |
 | **Dashboard** | [`floconDashboard`](#dashboard): values of your app updated live, and buttons, inputs and forms that run actions in it |
 | **Tables** | [`floconTable(name)`](#tables): any structured data you want to inspect while the app runs |
 | **Preferences** | [`floconRegisterSharedPreferences`](#preferences): browse and edit your `SharedPreferences` from the desktop |
@@ -33,6 +34,7 @@ The SDK is split in several packages, so that you only depend on the libraries y
 | `flocon_shared_preferences` | Preferences plugin | `shared_preferences` |
 | `flocon_files` | Files plugin | `path_provider` |
 | `flocon_crash_reporter` | Crash reporter plugin | `path_provider` |
+| `flocon_database` | Database plugin (SQLite) | `sqflite` |
 | `flocon_qr_scanner` | `FloconQrScannerView`: connect by scanning the QR code of the desktop (Android, iOS, macOS) | `mobile_scanner` |
 
 ## Installation
@@ -66,6 +68,10 @@ dependencies:
     git:
       url: https://github.com/openflocon/FloconFlutter.git
       path: packages/flocon_crash_reporter
+  flocon_database:
+    git:
+      url: https://github.com/openflocon/FloconFlutter.git
+      path: packages/flocon_database
   flocon_qr_scanner:
     git:
       url: https://github.com/openflocon/FloconFlutter.git
@@ -331,6 +337,43 @@ floconRegisterDeeplinks(
 
 A variable is shared by several deeplinks, and edited once in the desktop app.
 
+## Databases
+
+`import 'package:flocon_database/flocon_database.dart';`
+
+```dart
+Flocon.initialize();
+await floconEnableDatabasePlugin();
+```
+
+The SQLite files of the databases folder (`sqflite`), the documents folder (Android, iOS, macOS sandbox) and the application
+support folder are shown without any setup, **whatever their extension** (Drift, sqflite, plain SQLite files...). Run any
+SQL query on them from the desktop. Queries run on their own connection, next to the one of the app. Blobs are shown as
+hexadecimal, truncated after 64 bytes. Only the listed databases can be queried.
+
+Register the databases stored elsewhere, or give one a clearer name:
+
+```dart
+floconRegisterDatabase('Shared', '/path/to/shared.sqlite');
+```
+
+To see the queries run by the app, log them from the hook of your database library. A query is linked to its database by
+the path of its file. For example with Drift:
+
+```dart
+class FloconQueryInterceptor extends QueryInterceptor {
+  FloconQueryInterceptor(this.path);
+  final String path;
+
+  @override
+  Future<List<Map<String, Object?>>> runSelect(QueryExecutor e, String statement, List<Object?> args) {
+    floconLogDatabaseQuery(path, statement, args);
+    return super.runSelect(e, statement, args);
+  }
+  // same for runInsert, runUpdate, runDelete, runCustom
+}
+```
+
 ## Dashboard
 
 A dashboard shows values of the app, and runs actions in it from the desktop app. A section is either static, or rebuilt
@@ -489,6 +532,7 @@ packages/
   flocon_shared_preferences/    # Preferences plugin
   flocon_files/                 # Files plugin
   flocon_crash_reporter/        # Crash reporter plugin
+  flocon_database/              # Database plugin
   flocon_qr_scanner/            # QR code scanner view
 sample/                         # sample app
 tool/check.sh
@@ -503,4 +547,4 @@ each message wrapped in an envelope (`deviceId`, `plugin`, `method`, `body`, `ap
 
 ## Status / TODO
 
-Not implemented yet: database, mocks of WebSocket messages, and the other device features (restart app).
+Not implemented yet: mocks of WebSocket messages, and the other device features (restart app).
