@@ -43,7 +43,7 @@ void main() {
     plugin.recordError(ArgumentError('second'), null);
     plugin.onConnectedToServer();
     final message = sender.sent.single;
-    expect((message.plugin, message.method), ('crashreporter', 'reportcrash'));
+    expect((message.plugin, message.method), ('crash_reporter', 'report_crash'));
     expect(message.body, hasLength(2));
     expect(message.body.first.keys.toSet(),
         {'crashId', 'timestamp', 'exceptionType', 'exceptionMessage', 'stackTrace'});

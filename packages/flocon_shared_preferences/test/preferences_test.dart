@@ -14,7 +14,7 @@ class _Sender implements FloconMessageSender {
 }
 
 FloconMessageFromServer _msg(String method, Map<String, Object?> body) =>
-    FloconMessageFromServer(plugin: 'sharedPreferences', method: method, body: jsonEncode(body));
+    FloconMessageFromServer(plugin: 'shared_preferences', method: method, body: jsonEncode(body));
 
 void main() {
   late _Sender sender;
@@ -38,14 +38,14 @@ void main() {
 
   test('sends the list of stores on connection', () {
     plugin.onConnectedToServer();
-    expect(sender.sent.single.method, 'getSharedPreferences');
+    expect(sender.sent.single.method, 'get_shared_preferences');
     expect(sender.sent.single.body, [
       {'name': 'prefs'}
     ]);
   });
 
   test('answers a content request with typed rows', () async {
-    await plugin.handleMessage(_msg('getSharedPreferenceValue', {'requestId': 'r1', 'sharedPreferenceName': 'prefs'}));
+    await plugin.handleMessage(_msg('get_shared_preference_value', {'requestId': 'r1', 'sharedPreferenceName': 'prefs'}));
     final body = sender.sent.single.body as Map<String, dynamic>;
     expect(body['requestId'], 'r1');
     final rows = {for (final r in body['rows'] as List) r['key'] as String: r as Map<String, dynamic>};
@@ -59,14 +59,14 @@ void main() {
   });
 
   test('applies an edit of the same type and answers with the new content', () async {
-    await plugin.handleMessage(_msg('setSharedPreferenceValue',
+    await plugin.handleMessage(_msg('set_shared_preference_value',
         {'requestId': 'r2', 'sharedPreferenceName': 'prefs', 'key': 'count', 'intValue': 42}));
     expect(prefs.getInt('count'), 42);
-    expect(sender.sent.single.method, 'getSharedPreferenceValue');
+    expect(sender.sent.single.method, 'get_shared_preference_value');
   });
 
   test('ignores an edit whose type does not match', () async {
-    await plugin.handleMessage(_msg('setSharedPreferenceValue',
+    await plugin.handleMessage(_msg('set_shared_preference_value',
         {'requestId': 'r3', 'sharedPreferenceName': 'prefs', 'key': 'name', 'booleanValue': true}));
     expect(prefs.getString('name'), 'Florent');
   });

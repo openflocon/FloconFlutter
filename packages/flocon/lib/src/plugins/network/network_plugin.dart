@@ -15,16 +15,16 @@ class FloconNetworkPlugin implements FloconPlugin {
     required FloconMessageSender sender,
     Random? random,
     Future<void> Function(Duration)? delay,
-  })  : _sender = sender,
-        _random = random ?? Random(),
-        _delay = delay ?? Future<void>.delayed;
+  }) : _sender = sender,
+       _random = random ?? Random(),
+       _delay = delay ?? Future<void>.delayed;
 
   static const name = 'network';
-  static const methodLogRequest = 'logNetworkCallRequest';
-  static const methodLogResponse = 'logNetworkCallResponse';
-  static const methodLogWebSocketEvent = 'logWebSocketEvent';
-  static const methodSetupMocks = 'setupMocks';
-  static const methodSetupBadNetworkConfig = 'setupBadNetworkConfig';
+  static const methodLogRequest = 'log_network_call_request';
+  static const methodLogResponse = 'log_network_call_response';
+  static const methodLogWebSocketEvent = 'log_websocket_event';
+  static const methodSetupMocks = 'setup_mocks';
+  static const methodSetupBadNetworkConfig = 'setup_bad_network_config';
 
   final FloconMessageSender _sender;
   final Random _random;
@@ -69,8 +69,12 @@ class FloconNetworkPlugin implements FloconPlugin {
     }
     final config = badQualityConfig;
     if (config == null) return null;
-    if (config.shouldSimulateLatency(_random)) await _delay(config.randomLatency(_random));
-    if (config.shouldFail(_random)) return config.selectRandomError(_random)?.toOverride();
+    if (config.shouldSimulateLatency(_random)) {
+      await _delay(config.randomLatency(_random));
+    }
+    if (config.shouldFail(_random)) {
+      return config.selectRandomError(_random)?.toOverride();
+    }
     return null;
   }
 
@@ -84,18 +88,17 @@ class FloconNetworkPlugin implements FloconPlugin {
     String? requestBody,
     int? requestSize,
     bool isMocked = false,
-  }) =>
-      _send(methodLogRequest, {
-        'floconCallId': callId,
-        'floconNetworkType': 'http',
-        'url': url,
-        'method': method,
-        'startTime': startTime,
-        'requestHeaders': requestHeaders,
-        'requestBody': requestBody,
-        'requestSize': requestSize,
-        'isMocked': isMocked,
-      });
+  }) => _send(methodLogRequest, {
+    'floconCallId': callId,
+    'floconNetworkType': 'http',
+    'url': url,
+    'method': method,
+    'startTime': startTime,
+    'requestHeaders': requestHeaders,
+    'requestBody': requestBody,
+    'requestSize': requestSize,
+    'isMocked': isMocked,
+  });
 
   void logResponse({
     required String callId,
@@ -109,24 +112,24 @@ class FloconNetworkPlugin implements FloconPlugin {
     Map<String, String>? requestHeaders,
     bool isImage = false,
     bool isMocked = false,
-  }) =>
-      _send(methodLogResponse, {
-        'floconCallId': callId,
-        'floconNetworkType': 'http',
-        'isMocked': isMocked,
-        'durationMs': durationMs,
-        'isImage': isImage,
-        'requestHeaders': requestHeaders,
-        'responseHttpCode': httpCode,
-        'responseContentType': contentType,
-        'responseBody': body,
-        'responseHeaders': headers,
-        'responseSize': size,
-        'responseGrpcStatus': null,
-        'responseError': error,
-      });
+  }) => _send(methodLogResponse, {
+    'floconCallId': callId,
+    'floconNetworkType': 'http',
+    'isMocked': isMocked,
+    'durationMs': durationMs,
+    'isImage': isImage,
+    'requestHeaders': requestHeaders,
+    'responseHttpCode': httpCode,
+    'responseContentType': contentType,
+    'responseBody': body,
+    'responseHeaders': headers,
+    'responseSize': size,
+    'responseGrpcStatus': null,
+    'responseError': error,
+  });
 
-  void logWebSocketEvent(FloconWebSocketEvent event) => _send(methodLogWebSocketEvent, {
+  void logWebSocketEvent(FloconWebSocketEvent event) =>
+      _send(methodLogWebSocketEvent, {
         'id': const Uuid().v4(),
         'event': switch (event.event) {
           FloconWebSocketEventType.closed => 'closed',

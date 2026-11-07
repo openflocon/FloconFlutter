@@ -13,7 +13,7 @@ Once the SDK is started, your app connects to the Flocon desktop app and shows, 
 | **Analytics** | [`floconAnalytics(stream)`](#analytics): one table per stream (e.g. per provider) |
 | **Tables** | [`floconTable(name)`](#tables): any structured data you want to inspect while the app runs |
 | **Preferences** | [`floconRegisterSharedPreferences`](#preferences): browse and edit your `SharedPreferences` from the desktop |
-| **Device** | [`floconEnableDevicePlugin`](#device): your app shows with its icon in the desktop |
+| **App icon** | your app shows with its icon in the desktop, nothing to set up |
 | **Files** | [`floconEnableFilesPlugin`](#files): browse, download and delete the files of your app from the desktop |
 | **Crash reporter** | [`floconEnableCrashReporter`](#crash-reporter): uncaught Dart and Flutter errors, with their stack trace |
 
@@ -23,13 +23,13 @@ The SDK is split in several packages, so that you only depend on the libraries y
 
 | Package | Content | Depends on |
 | --- | --- | --- |
-| `flocon` | connection, Network (WebSocket events), Analytics, Tables, custom plugins | no HTTP library |
+| `flocon` | connection, app icon (native code for Android, iOS and macOS), Network (WebSocket events, mocks), Analytics, Tables, custom plugins | `path_provider`, no HTTP library |
 | `flocon_dio` | `FloconDioInterceptor` | `dio` |
 | `flocon_http` | `FloconHttpClient` | `http` |
 | `flocon_shared_preferences` | Preferences plugin | `shared_preferences` |
 | `flocon_files` | Files plugin | `path_provider` |
 | `flocon_crash_reporter` | Crash reporter plugin | `path_provider` |
-| `flocon_device` | Device plugin (app icon), has native code for Android, iOS and macOS | nothing else |
+| `flocon_qr_scanner` | `FloconQrScannerView`: connect by scanning the QR code of the desktop (Android, iOS, macOS) | `mobile_scanner` |
 
 ## Installation
 
@@ -62,10 +62,10 @@ dependencies:
     git:
       url: https://github.com/openflocon/FloconFlutter.git
       path: packages/flocon_crash_reporter
-  flocon_device:
+  flocon_qr_scanner:
     git:
       url: https://github.com/openflocon/FloconFlutter.git
-      path: packages/flocon_device
+      path: packages/flocon_qr_scanner
 ```
 
 ## Getting started
@@ -77,7 +77,7 @@ import 'package:flocon/flocon.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  Flocon.initialize(); // connects in the background, retries every 3s, queues messages meanwhile
+  Flocon.initialize(); // connects in the background, retries every 3s, keeps what is logged meanwhile
   runApp(const MyApp());
 }
 ```
@@ -97,12 +97,76 @@ You will probably want to enable it in debug builds only (`if (kDebugMode) Floco
 Flocon.initialize(config: FloconConfig(host: '192.168.1.20'));
 ```
 
+### Custom ports
+
+The SDK uses the ports `9023` (WebSocket) and `9024` (HTTP) of the desktop app. If you changed them in the Flocon desktop
+settings, give the same values (a port outside 1...65535 is replaced by the default one):
+
+```dart
+Flocon.initialize(config: FloconConfig(host: '192.168.1.20', webSocketPort: 9100, httpPort: 9101));
+```
+
+### Connecting to another address
+
+By default the SDK tries `config.host` and keeps retrying every 3 seconds. If the address of the computer is not known when
+the app starts (the user types it in, scans a QR code...), call `Flocon.connect` when you have it. The SDK keeps trying
+`localhost` and also connects to this address:
+
+```dart
+final result = await Flocon.connect('192.168.1.20'); // or '192.168.1.20:10023' or '192.168.1.20:10023:10024'
+```
+
+`host`, `host:wsPort` or `host:wsPort:httpPort`: an omitted port is the configured one, and a scheme, a path or an
+invalid port gives `FloconConnectResultInvalidAddress`. It returns a `FloconConnectResult` (connected, not started, invalid
+address, failed) instead of throwing; what the app logs is kept in every case, so you can call it again. The desktop shows a
+wifi icon next to a device connected this way. The last address is tried again at the next launch
+(`FloconConfig.rememberLastAddress`). `await Flocon.disconnect()` closes it and forgets it.
+
+Until a desktop is reachable, everything the app logs is kept in memory (up to `FloconConfig.bufferCapacity`, 5000 messages:
+above it the oldest are dropped), and sent in order once connected. The same buffer is used when the connection is lost.
+
+Follow the connection with `Flocon.connectionState` or the `Flocon.connectionStates` stream (idle, buffering, connecting,
+connected, failed):
+
+```dart
+Flocon.connectionStates.listen((state) => switch (state) {
+      FloconConnected() => print('connected'),
+      FloconFailed(:final reason) => print('failed: $reason'),
+      _ => null,
+    });
+```
+
+#### Scanning a QR code
+
+`flocon_qr_scanner` scans the QR code of Flocon Desktop (the IP address of the computer, with both ports when they are not
+the defaults) and connects with `Flocon.connect`:
+
+```dart
+FloconQrScannerView(onResult: (result) {
+  if (result is FloconConnectResultConnected) Navigator.pop(context);
+})
+```
+
+Camera permission: `NSCameraUsageDescription` (iOS, macOS), the `CAMERA` permission (Android, `minSdk` 23),
+`com.apple.security.device.camera` in the macOS entitlements.
+
+### Console logs
+
+The SDK prints nothing by default. To see what it does, for example when the app does not show up in the desktop app:
+
+```dart
+Flocon.isLoggingEnabled = true;
+Flocon.initialize();
+```
+
 ### Platform setup
 
-The connection uses plain `ws://`:
+The connection uses `wss://` with the self-signed certificate of the desktop app, which is accepted without being verified
+(the connection is encrypted, not authenticated), so no cleartext traffic nor App Transport Security exception is needed
+(neither for the HTTPS downloads of the Files plugin).
 
-- **Android**: `INTERNET` permission and `android:usesCleartextTraffic="true"`.
-- **iOS**: `NSLocalNetworkUsageDescription` and an App Transport Security exception (`NSAllowsLocalNetworking`).
+- **Android**: the `INTERNET` permission.
+- **iOS**: `NSLocalNetworkUsageDescription`, to reach the computer on the local network.
 - **macOS**: the `com.apple.security.network.client` entitlement.
 
 See `sample/` for a working configuration of the three platforms.
@@ -221,18 +285,6 @@ The desktop lists the keys with their typed values and lets you edit `String`, `
 and `List<String>` values; an edit is only applied when its type matches the stored one.
 Call it after `Flocon.initialize()` (it does nothing before). Register several instances with different names.
 
-## Device
-
-`import 'package:flocon_device/flocon_device.dart';`
-
-```dart
-Flocon.initialize();
-floconEnableDevicePlugin(); // answers the desktop's request for the app icon
-```
-
-The icon is read natively (Android: launcher icon, iOS: largest icon of the `Info.plist`, macOS: the app icon)
-and sent as a base64 PNG of at most 300 pixels. Restarting the app from the desktop is not supported.
-
 ## Files
 
 `import 'package:flocon_files/flocon_files.dart';`
@@ -328,7 +380,7 @@ packages/
   flocon_shared_preferences/    # Preferences plugin
   flocon_files/                 # Files plugin
   flocon_crash_reporter/        # Crash reporter plugin
-  flocon_device/                # Device plugin (app icon), with native code
+  flocon_qr_scanner/            # QR code scanner view
 sample/                         # sample app
 tool/check.sh
 ```

@@ -37,14 +37,16 @@ class FloconAnalytics {
       Flocon.analyticsPlugin?.registerAnalytics(streamName, events);
 }
 
-FloconAnalytics floconAnalytics(String streamName) => FloconAnalytics._(streamName);
+FloconAnalytics floconAnalytics(String streamName) =>
+    FloconAnalytics._(streamName);
 
 /// Sends analytics events to the Flocon desktop app.
 class FloconAnalyticsPlugin implements FloconPlugin {
-  FloconAnalyticsPlugin({required FloconMessageSender sender}) : _sender = sender;
+  FloconAnalyticsPlugin({required FloconMessageSender sender})
+    : _sender = sender;
 
-  static const name = 'Analytics';
-  static const methodAddItems = 'AddItems';
+  static const name = 'analytics';
+  static const methodAddItems = 'add_items';
 
   final FloconMessageSender _sender;
 
@@ -58,7 +60,11 @@ class FloconAnalyticsPlugin implements FloconPlugin {
   void onMessageReceived(FloconMessageFromServer message) {}
 
   /// Sends the events in a single message (the desktop expects a JSON array).
-  void registerAnalytics(String streamName, List<AnalyticsEvent> events, {DateTime? createdAt}) {
+  void registerAnalytics(
+    String streamName,
+    List<AnalyticsEvent> events, {
+    DateTime? createdAt,
+  }) {
     if (events.isEmpty) return;
     final now = (createdAt ?? DateTime.now()).millisecondsSinceEpoch;
     try {

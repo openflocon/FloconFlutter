@@ -65,8 +65,8 @@ void main() {
       final dio = build(FakeAdapter(200, '{"ok":true}'));
       await dio.post('https://x.test/a', data: {'a': 1});
       expect(sender.sent.map((m) => m.method), [
-        'logNetworkCallRequest',
-        'logNetworkCallResponse',
+        'log_network_call_request',
+        'log_network_call_response',
       ]);
       final req = sender.sent[0].body, res = sender.sent[1].body;
       expect(req['floconCallId'], res['floconCallId']);
@@ -142,7 +142,7 @@ void main() {
       'a mock answers without touching the network and is logged as mocked',
       () async {
         plugin.onMessageReceived(
-          setup('setupMocks', [
+          setup('setup_mocks', [
             {
               'expectation': {
                 'urlPattern': r'https://x\.test/a',
@@ -164,8 +164,8 @@ void main() {
         expect(response.headers.value('x-mock'), 'yes');
         expect(adapter.calls, 0);
         expect(sender.sent.map((m) => m.method), [
-          'logNetworkCallRequest',
-          'logNetworkCallResponse',
+          'log_network_call_request',
+          'log_network_call_response',
         ]);
         expect(sender.sent[0].body['isMocked'], true);
         expect(sender.sent[1].body['isMocked'], true);
@@ -176,7 +176,7 @@ void main() {
 
     test('a non-matching url goes through to the network', () async {
       plugin.onMessageReceived(
-        setup('setupMocks', [
+        setup('setup_mocks', [
           {
             'expectation': {
               'urlPattern': 'https://other.test/.*',
@@ -196,7 +196,7 @@ void main() {
       'an error status mock is rejected like a real error response',
       () async {
         plugin.onMessageReceived(
-          setup('setupMocks', [
+          setup('setup_mocks', [
             {
               'expectation': {'urlPattern': '.*', 'method': '*'},
               'response': {'httpCode': 404, 'body': 'nope', 'delay': 0},
@@ -220,7 +220,7 @@ void main() {
 
     test('an exception mock is thrown as a Dio error and logged', () async {
       plugin.onMessageReceived(
-        setup('setupMocks', [
+        setup('setup_mocks', [
           {
             'expectation': {'urlPattern': '.*', 'method': '*'},
             'response': {
@@ -251,7 +251,7 @@ void main() {
       'a bad network error rate of 1 fails the call, not flagged as mocked',
       () async {
         plugin.onMessageReceived(
-          setup('setupBadNetworkConfig', {
+          setup('setup_bad_network_config', {
             'latency': {
               'latencyTriggerProbability': 0,
               'minLatencyMs': 0,

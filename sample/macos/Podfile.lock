@@ -1,7 +1,7 @@
 PODS:
   - device_info_plus (0.0.1):
     - FlutterMacOS
-  - flocon_device (0.0.1):
+  - flocon (0.0.1):
     - FlutterMacOS
   - FlutterMacOS (1.0.0)
   - package_info_plus (0.0.1):
@@ -15,7 +15,7 @@ PODS:
 
 DEPENDENCIES:
   - device_info_plus (from `Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos`)
-  - flocon_device (from `Flutter/ephemeral/.symlinks/plugins/flocon_device/macos`)
+  - flocon (from `Flutter/ephemeral/.symlinks/plugins/flocon/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
   - package_info_plus (from `Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos`)
   - path_provider_foundation (from `Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin`)
@@ -24,8 +24,8 @@ DEPENDENCIES:
 EXTERNAL SOURCES:
   device_info_plus:
     :path: Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos
-  flocon_device:
-    :path: Flutter/ephemeral/.symlinks/plugins/flocon_device/macos
+  flocon:
+    :path: Flutter/ephemeral/.symlinks/plugins/flocon/macos
   FlutterMacOS:
     :path: Flutter/ephemeral
   package_info_plus:
@@ -37,7 +37,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   device_info_plus: 4fb280989f669696856f8b129e4a5e3cd6c48f76
-  flocon_device: 007c311478c73a2f774e5ce3e0ba97c50327fbb6
+  flocon: 6c11dc11b7db913fb93682a5a0815f73b48880a6
   FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
   package_info_plus: f0052d280d17aa382b932f399edf32507174e870
   path_provider_foundation: 080d55be775b7414fd5a5ef3ac137b97b097e564

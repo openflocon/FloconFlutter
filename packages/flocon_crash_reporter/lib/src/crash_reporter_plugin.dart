@@ -19,8 +19,8 @@ class FloconCrashReporterPlugin implements FloconPlugin {
         _store = store,
         _isConnected = isConnected ?? (() => Flocon.isConnected);
 
-  static const name = 'crashreporter';
-  static const methodReportCrash = 'reportcrash';
+  static const name = 'crash_reporter';
+  static const methodReportCrash = 'report_crash';
 
   final FloconMessageSender _sender;
   final FloconCrashStore _store;

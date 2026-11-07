@@ -1,7 +1,6 @@
 name: flocon
 description: Flocon SDK for Flutter - sends your app's network calls, analytics events and tables to the Flocon desktop debugger.
 version: 0.0.1
-homepage:
 
 environment:
   sdk: ^3.8.1
@@ -13,6 +12,7 @@ dependencies:
   device_info_plus: ^12.4.0
   package_info_plus: ^9.0.1
   uuid: ^4.6.0
+  path_provider: ^2.1.5
 
 dev_dependencies:
   flutter_test:
@@ -24,6 +24,15 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  plugin:
+    platforms:
+      android:
+        package: io.github.openflocon.flocon
+        pluginClass: FloconNativePlugin
+      ios:
+        pluginClass: FloconNativePlugin
+      macos:
+        pluginClass: FloconNativePlugin
 
   # To add assets to your package, add an assets section, like this:
   # assets:

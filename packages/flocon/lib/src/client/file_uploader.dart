@@ -6,20 +6,25 @@ import '../core/logger.dart';
 
 /// Fields that identify the app, sent with every uploaded file.
 class FloconUploadIdentity {
-  const FloconUploadIdentity({required this.deviceId, required this.appPackageName, required this.appInstance});
+  const FloconUploadIdentity({
+    required this.deviceId,
+    required this.appPackageName,
+    required this.appInstance,
+  });
 
   final String deviceId;
   final String appPackageName;
   final int appInstance;
 }
 
-/// Uploads files to the HTTP server of the desktop app, as `multipart/form-data`.
+/// Uploads files to the HTTP server of the desktop app, as `multipart/form-data`, over `https://`
+/// with its self-signed certificate (accepted without being verified).
 /// The file is streamed, so that large files are never loaded in memory.
 class FloconFileUploader {
-  const FloconFileUploader({required this.host, required this.port});
+  const FloconFileUploader(this.uploadUri);
 
-  final String host;
-  final int port;
+  /// `https://host:httpPort/upload`
+  final Uri uploadUri;
 
   Future<void> upload(
     File file, {
@@ -27,32 +32,44 @@ class FloconFileUploader {
     required String requestId,
     required FloconUploadIdentity identity,
   }) async {
-    final client = HttpClient();
+    final client = HttpClient()..badCertificateCallback = (_, __, ___) => true;
     try {
-      final boundary = 'Flocon-${Random().nextInt(1 << 32)}-${DateTime.now().microsecondsSinceEpoch}';
-      final request = await client.postUrl(Uri.parse('http://$host:$port/upload')).timeout(const Duration(seconds: 10));
+      final boundary =
+          'Flocon-${Random().nextInt(1 << 32)}-${DateTime.now().microsecondsSinceEpoch}';
+      final request = await client
+          .postUrl(uploadUri)
+          .timeout(const Duration(seconds: 10));
       request.headers
         ..set(HttpHeaders.userAgentHeader, 'Flocon')
-        ..set(HttpHeaders.contentTypeHeader, 'multipart/form-data; boundary=$boundary');
+        ..set(
+          HttpHeaders.contentTypeHeader,
+          'multipart/form-data; boundary=$boundary',
+        );
 
-      request.add(utf8.encode(multipartHead(
-        boundary,
-        fields: {
-          'remotePath': remotePath,
-          'requestId': requestId,
-          'deviceId': identity.deviceId,
-          'appPackageName': identity.appPackageName,
-          'appInstance': '${identity.appInstance}',
-        },
-        fileName: file.uri.pathSegments.last,
-      )));
+      request.add(
+        utf8.encode(
+          multipartHead(
+            boundary,
+            fields: {
+              'remotePath': remotePath,
+              'requestId': requestId,
+              'deviceId': identity.deviceId,
+              'appPackageName': identity.appPackageName,
+              'appInstance': '${identity.appInstance}',
+            },
+            fileName: file.uri.pathSegments.last,
+          ),
+        ),
+      );
       await request.addStream(file.openRead());
       request.add(utf8.encode(multipartTail(boundary)));
 
       final response = await request.close();
       await response.drain<void>();
       if (response.statusCode < 200 || response.statusCode >= 300) {
-        FloconLogger.log('Upload of $remotePath failed: HTTP ${response.statusCode}');
+        FloconLogger.log(
+          'Upload of $remotePath failed: HTTP ${response.statusCode}',
+        );
       }
     } catch (e) {
       FloconLogger.logError('Upload of $remotePath failed', e);
@@ -62,7 +79,11 @@ class FloconFileUploader {
   }
 
   /// The text fields, then the headers of the file part.
-  static String multipartHead(String boundary, {required Map<String, String> fields, required String fileName}) {
+  static String multipartHead(
+    String boundary, {
+    required Map<String, String> fields,
+    required String fileName,
+  }) {
     final out = StringBuffer();
     for (final field in fields.entries) {
       out
@@ -72,7 +93,9 @@ class FloconFileUploader {
     }
     out
       ..write('--$boundary\r\n')
-      ..write('Content-Disposition: form-data; name="file"; filename="${fileName.replaceAll('"', '_')}"\r\n')
+      ..write(
+        'Content-Disposition: form-data; name="file"; filename="${fileName.replaceAll('"', '_')}"\r\n',
+      )
       ..write('Content-Type: application/octet-stream\r\n\r\n');
     return out.toString();
   }

@@ -3,72 +3,73 @@ import 'dart:io';
 
 import '../core/logger.dart';
 
-/// Minimal WebSocket client with a bounded queue for messages sent while disconnected.
+/// A `wss://` connection to the desktop app.
+///
+/// The desktop serves a self-signed certificate: the connection is encrypted, but the certificate is
+/// not verified (so the app needs no cleartext traffic nor App Transport Security exception).
 class FloconWebSocketClient {
-  FloconWebSocketClient({this.queueCapacity = 200});
-
-  final int queueCapacity;
-  final List<String> _queue = [];
   WebSocket? _socket;
 
   bool get isConnected => _socket != null;
 
   /// Opens the connection. Throws if the desktop is unreachable.
-  Future<void> connect({
-    required String address,
-    required int port,
+  Future<void> connect(
+    Uri uri, {
     required void Function(String) onMessageReceived,
     required void Function() onClosed,
   }) async {
     if (_socket != null) return;
-    final socket = await WebSocket.connect(
-      'ws://$address:$port',
-      headers: {'User-Agent': 'Flocon'},
-    ).timeout(const Duration(seconds: 5));
+    final client = HttpClient()..badCertificateCallback = (_, __, ___) => true;
+    final WebSocket socket;
+    try {
+      socket = await WebSocket.connect(
+        uri.toString(),
+        headers: {'User-Agent': 'Flocon'},
+        customClient: client,
+      ).timeout(const Duration(seconds: 5));
+    } catch (_) {
+      client.close(force: true);
+      rethrow;
+    }
     _socket = socket;
-    FloconLogger.log('WebSocket opened');
+    FloconLogger.log('WebSocket opened on $uri');
     socket.listen(
       (data) {
         if (data is String) onMessageReceived(data);
       },
-      onDone: () => _ended(socket, onClosed),
+      onDone: () => _ended(socket, client, onClosed),
       onError: (Object e) {
         FloconLogger.logError('WebSocket error', e);
-        _ended(socket, onClosed);
+        _ended(socket, client, onClosed);
       },
       cancelOnError: true,
     );
   }
 
-  void _ended(WebSocket socket, void Function() onClosed) {
-    if (!identical(_socket, socket)) return; // already handled or explicit disconnect
+  void _ended(WebSocket socket, HttpClient client, void Function() onClosed) {
+    client.close(force: true);
+    // already handled, or explicit disconnect
+    if (!identical(_socket, socket)) return;
     _socket = null;
     onClosed();
   }
 
-  /// Sends the message, or queues it when disconnected (oldest dropped past the capacity).
-  void send(String message) {
+  /// Returns false if the message could not be sent.
+  bool send(String message) {
     final socket = _socket;
-    if (socket == null) {
-      _queue.add(message);
-      if (_queue.length > queueCapacity) {
-        _queue.removeRange(0, _queue.length - queueCapacity);
-      }
-      return;
+    if (socket == null) return false;
+    try {
+      socket.add(message);
+      return true;
+    } catch (e) {
+      FloconLogger.logError('send failed', e);
+      return false;
     }
-    socket.add(message);
-  }
-
-  void sendPendingMessages() {
-    if (_socket == null) return;
-    final pending = List<String>.of(_queue);
-    _queue.clear();
-    pending.forEach(send);
   }
 
   Future<void> disconnect() async {
     final socket = _socket;
-    _socket = null; // before closing so onClosed is not triggered
+    _socket = null; // before closing, so that onClosed is not triggered
     await socket?.close();
   }
 }

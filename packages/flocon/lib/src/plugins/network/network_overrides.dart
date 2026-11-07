@@ -43,7 +43,9 @@ class FloconFakeResponse extends FloconNetworkOverride {
 
   /// The headers, with the content type when the mock defines one and the headers do not.
   Map<String, String> get headersWithContentType {
-    final hasContentType = headers.keys.any((k) => k.toLowerCase() == 'content-type');
+    final hasContentType = headers.keys.any(
+      (k) => k.toLowerCase() == 'content-type',
+    );
     return {
       ...headers,
       if (!hasContentType && mediaType.isNotEmpty) 'content-type': mediaType,
@@ -53,7 +55,8 @@ class FloconFakeResponse extends FloconNetworkOverride {
 
 /// A fake network error, to be thrown in the way of the HTTP library.
 class FloconFakeError extends FloconNetworkOverride {
-  FloconFakeError({required this.className, required super.isMocked}) : kind = floconErrorKindOf(className);
+  FloconFakeError({required this.className, required super.isMocked})
+    : kind = floconErrorKindOf(className);
 
   /// The exception class sent by the desktop, for example `java.net.SocketTimeoutException`.
   final String className;
@@ -83,7 +86,9 @@ class FloconMock {
       httpCode: (response['httpCode'] as num?)?.toInt(),
       body: (response['body'] as String?) ?? '',
       mediaType: (response['mediaType'] as String?) ?? '',
-      headers: ((response['headers'] as Map?) ?? const {}).map((k, v) => MapEntry('$k', '$v')),
+      headers: ((response['headers'] as Map?) ?? const {}).map(
+        (k, v) => MapEntry('$k', '$v'),
+      ),
       errorException: response['errorException'] as String?,
     );
   }
@@ -101,7 +106,8 @@ class FloconMock {
   final String? errorException;
 
   bool matches(String url, String method) {
-    final methodMatches = this.method == '*' || this.method.toLowerCase() == method.toLowerCase();
+    final methodMatches =
+        this.method == '*' || this.method.toLowerCase() == method.toLowerCase();
     if (!methodMatches) return false;
     try {
       return RegExp('^(?:$urlPattern)\$').hasMatch(url);
@@ -111,7 +117,9 @@ class FloconMock {
   }
 
   FloconNetworkOverride? toOverride() {
-    if (errorException != null) return FloconFakeError(className: errorException!, isMocked: true);
+    if (errorException != null) {
+      return FloconFakeError(className: errorException!, isMocked: true);
+    }
     if (httpCode == null) return null;
     return FloconFakeResponse(
       statusCode: httpCode!,
@@ -123,13 +131,15 @@ class FloconMock {
   }
 }
 
-/// Parses the `setupMocks` message. Unreadable input gives no mock.
+/// Parses the `setup_mocks` message. Unreadable input gives no mock.
 List<FloconMock> parseMocks(String json) {
   try {
-    return [
-      for (final item in jsonDecode(json) as List<dynamic>)
-        if (FloconMock.fromJson(item as Map<String, dynamic>) case final mock when mock.toOverride() != null) mock,
-    ];
+    final mocks = <FloconMock>[];
+    for (final item in jsonDecode(json) as List<dynamic>) {
+      final mock = FloconMock.fromJson(item as Map<String, dynamic>);
+      if (mock.toOverride() != null) mocks.add(mock);
+    }
+    return mocks;
   } catch (_) {
     return const [];
   }
@@ -148,18 +158,22 @@ class FloconBadQualityConfig {
   factory FloconBadQualityConfig.fromJson(Map<String, dynamic> json) {
     final latency = json['latency'] as Map<String, dynamic>;
     return FloconBadQualityConfig(
-      latencyTriggerProbability: (latency['latencyTriggerProbability'] as num).toDouble(),
+      latencyTriggerProbability: (latency['latencyTriggerProbability'] as num)
+          .toDouble(),
       minLatencyMs: (latency['minLatencyMs'] as num).toInt(),
       maxLatencyMs: (latency['maxLatencyMs'] as num).toInt(),
       errorProbability: (json['errorProbability'] as num).toDouble(),
       errors: [
-        for (final e in (json['errors'] as List<dynamic>).cast<Map<String, dynamic>>())
+        for (final e
+            in (json['errors'] as List<dynamic>).cast<Map<String, dynamic>>())
           FloconBadQualityError(
             weight: (e['weight'] as num).toDouble(),
             errorCode: (e['errorCode'] as num?)?.toInt() ?? 0,
             errorBody: (e['errorBody'] as String?) ?? '',
             errorContentType: (e['errorContentType'] as String?) ?? '',
-            errorException: (e['errorException'] as String?)?.isEmpty ?? true ? null : e['errorException'] as String,
+            errorException: (e['errorException'] as String?)?.isEmpty ?? true
+                ? null
+                : e['errorException'] as String,
           ),
       ],
     );
@@ -172,14 +186,19 @@ class FloconBadQualityConfig {
   final List<FloconBadQualityError> errors;
 
   bool shouldSimulateLatency(Random random) =>
-      latencyTriggerProbability > 0 && (latencyTriggerProbability >= 1 || random.nextDouble() < latencyTriggerProbability);
+      latencyTriggerProbability > 0 &&
+      (latencyTriggerProbability >= 1 ||
+          random.nextDouble() < latencyTriggerProbability);
 
   Duration randomLatency(Random random) {
     final max = maxLatencyMs < minLatencyMs ? minLatencyMs : maxLatencyMs;
-    return Duration(milliseconds: minLatencyMs + random.nextInt(max - minLatencyMs + 1));
+    return Duration(
+      milliseconds: minLatencyMs + random.nextInt(max - minLatencyMs + 1),
+    );
   }
 
-  bool shouldFail(Random random) => errorProbability > 0 && random.nextDouble() < errorProbability;
+  bool shouldFail(Random random) =>
+      errorProbability > 0 && random.nextDouble() < errorProbability;
 
   /// Picks an error, the more likely the bigger its weight.
   FloconBadQualityError? selectRandomError(Random random) {
@@ -225,7 +244,9 @@ class FloconBadQualityError {
 /// Parses the `setupBadNetworkConfig` message. Unreadable input gives no configuration.
 FloconBadQualityConfig? parseBadQualityConfig(String json) {
   try {
-    return FloconBadQualityConfig.fromJson(jsonDecode(json) as Map<String, dynamic>);
+    return FloconBadQualityConfig.fromJson(
+      jsonDecode(json) as Map<String, dynamic>,
+    );
   } catch (_) {
     return null;
   }

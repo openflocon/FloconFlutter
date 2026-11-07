@@ -11,12 +11,12 @@ import 'preference.dart';
 class FloconPreferencesPlugin implements FloconPlugin {
   FloconPreferencesPlugin({required FloconMessageSender sender}) : _sender = sender;
 
-  static const name = 'sharedPreferences';
+  static const name = 'shared_preferences';
   // app -> desktop, and desktop -> app for the two requests
-  static const methodGetSharedPreferences = 'getSharedPreferences';
-  static const methodGetSharedPreferenceValue = 'getSharedPreferenceValue';
+  static const methodGetSharedPreferences = 'get_shared_preferences';
+  static const methodGetSharedPreferenceValue = 'get_shared_preference_value';
   // desktop -> app
-  static const methodSetSharedPreferenceValue = 'setSharedPreferenceValue';
+  static const methodSetSharedPreferenceValue = 'set_shared_preference_value';
 
   final FloconMessageSender _sender;
   final Map<String, FloconPreference> _preferences = {};

@@ -47,10 +47,5 @@
 	<true/>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Flocon connects to the desktop app on your local network.</string>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsLocalNetworking</key>
-		<true/>
-	</dict>
 </dict>
 </plist>

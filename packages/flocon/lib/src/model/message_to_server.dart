@@ -18,15 +18,15 @@ class FloconMessageToServer {
   final int appInstance;
 
   Map<String, Object?> toJson() => {
-        'deviceId': infos.deviceId,
-        'plugin': plugin,
-        'body': body,
-        'appName': infos.appName,
-        'appPackageName': infos.appPackageName,
-        'method': method,
-        'deviceName': infos.deviceName,
-        'appInstance': appInstance,
-        'platform': infos.platform,
-        'versionName': FloconConfig.sdkVersion,
-      };
+    'deviceId': infos.deviceId,
+    'plugin': plugin,
+    'body': body,
+    'appName': infos.appName,
+    'appPackageName': infos.appPackageName,
+    'method': method,
+    'deviceName': infos.deviceName,
+    'appInstance': appInstance,
+    'platform': infos.platform,
+    'versionName': FloconConfig.sdkVersion,
+  };
 }

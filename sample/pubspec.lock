@@ -135,13 +135,6 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
-  flocon_device:
-    dependency: "direct main"
-    description:
-      path: "../packages/flocon_device"
-      relative: true
-    source: path
-    version: "0.0.1"
   flocon_dio:
     dependency: "direct main"
     description:

@@ -8,13 +8,21 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   late HttpServer server;
   late Directory dir;
-  final received = Completer<({String contentType, String userAgent, String path, String body})>();
+  final received =
+      Completer<
+        ({String contentType, String userAgent, String path, String body})
+      >();
 
   setUp(() async {
     dir = Directory.systemTemp.createTempSync('flocon_upload');
-    server = await HttpServer.bind('localhost', 0);
+    final context = SecurityContext()
+      ..useCertificateChain('test/fixtures/test_cert.pem')
+      ..usePrivateKey('test/fixtures/test_key.pem');
+    server = await HttpServer.bindSecure('localhost', 0, context);
     server.listen((request) async {
-      final body = utf8.decode(await request.fold<List<int>>([], (a, b) => a..addAll(b)));
+      final body = utf8.decode(
+        await request.fold<List<int>>([], (a, b) => a..addAll(b)),
+      );
       if (!received.isCompleted) {
         received.complete((
           contentType: request.headers.contentType.toString(),
@@ -32,41 +40,60 @@ void main() {
     dir.deleteSync(recursive: true);
   });
 
-  test('uploads the file and the identity fields as multipart/form-data', () async {
-    final file = File('${dir.path}/data.txt')..writeAsStringSync('hello flocon');
-    await FloconFileUploader(host: 'localhost', port: server.port).upload(
-      file,
-      remotePath: '/app/data.txt',
-      requestId: 'req-1',
-      identity: const FloconUploadIdentity(deviceId: 'dev', appPackageName: 'pkg', appInstance: 42),
-    );
-    final r = await received.future;
-    expect(r.path, '/upload');
-    expect(r.userAgent, 'Flocon');
-    expect(r.contentType, startsWith('multipart/form-data; boundary=Flocon-'));
-    for (final part in [
-      'name="remotePath"\r\n\r\n/app/data.txt',
-      'name="requestId"\r\n\r\nreq-1',
-      'name="deviceId"\r\n\r\ndev',
-      'name="appPackageName"\r\n\r\npkg',
-      'name="appInstance"\r\n\r\n42',
-      'name="file"; filename="data.txt"',
-      'hello flocon',
-    ]) {
-      expect(r.body, contains(part));
-    }
-    expect(r.body.trimRight(), endsWith('--'));
-  });
+  test(
+    'uploads over https the file and the identity fields as multipart/form-data',
+    () async {
+      final file = File('${dir.path}/data.txt')
+        ..writeAsStringSync('hello flocon');
+      await FloconFileUploader(
+        Uri.parse('https://localhost:${server.port}/upload'),
+      ).upload(
+        file,
+        remotePath: '/app/data.txt',
+        requestId: 'req-1',
+        identity: const FloconUploadIdentity(
+          deviceId: 'dev',
+          appPackageName: 'pkg',
+          appInstance: 42,
+        ),
+      );
+      final r = await received.future;
+      expect(r.path, '/upload');
+      expect(r.userAgent, 'Flocon');
+      expect(
+        r.contentType,
+        startsWith('multipart/form-data; boundary=Flocon-'),
+      );
+      for (final part in [
+        'name="remotePath"\r\n\r\n/app/data.txt',
+        'name="requestId"\r\n\r\nreq-1',
+        'name="deviceId"\r\n\r\ndev',
+        'name="appPackageName"\r\n\r\npkg',
+        'name="appInstance"\r\n\r\n42',
+        'name="file"; filename="data.txt"',
+        'hello flocon',
+      ]) {
+        expect(r.body, contains(part));
+      }
+      expect(r.body.trimRight(), endsWith('--'));
+    },
+  );
 
   test('an unreachable desktop does not throw', () async {
     final file = File('${dir.path}/data.txt')..writeAsStringSync('x');
     final port = server.port;
     await server.close(force: true);
-    await FloconFileUploader(host: 'localhost', port: port).upload(
+    await FloconFileUploader(
+      Uri.parse('https://localhost:$port/upload'),
+    ).upload(
       file,
       remotePath: 'p',
       requestId: 'r',
-      identity: const FloconUploadIdentity(deviceId: 'd', appPackageName: 'p', appInstance: 1),
+      identity: const FloconUploadIdentity(
+        deviceId: 'd',
+        appPackageName: 'p',
+        appInstance: 1,
+      ),
     );
   });
 }

@@ -21,13 +21,13 @@ class FloconFilesPlugin implements FloconPlugin {
 
   static const name = 'files';
   // desktop -> app
-  static const methodListFiles = 'listFiles';
-  static const methodGetFile = 'getFile';
-  static const methodDeleteFile = 'deleteFile';
-  static const methodDeleteFiles = 'deleteFiles';
-  static const methodDeleteFolderContent = 'deleteFolderContent';
+  static const methodListFiles = 'list_files';
+  static const methodGetFile = 'get_file';
+  static const methodDeleteFile = 'delete_file';
+  static const methodDeleteFiles = 'delete_files';
+  static const methodDeleteFolderContent = 'delete_folder_content';
   // app -> desktop: older desktop versions compare method names case-sensitively
-  static const methodListFilesResult = 'listFiles';
+  static const methodListFilesResult = 'list_files';
 
   final FloconMessageSender _sender;
   final FloconFileSender _fileSender;

@@ -48,10 +48,12 @@ class FloconAppInfos {
       platform: Platform.isIOS
           ? 'ios'
           : Platform.isAndroid
-              ? 'android'
-              : Platform.operatingSystem,
+          ? 'android'
+          : Platform.operatingSystem,
       appName: package.appName.isEmpty ? 'unknown' : package.appName,
-      appPackageName: package.packageName.isEmpty ? 'unknown' : package.packageName,
+      appPackageName: package.packageName.isEmpty
+          ? 'unknown'
+          : package.packageName,
     );
   }
 }

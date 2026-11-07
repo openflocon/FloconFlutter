@@ -39,8 +39,6 @@ dependencies:
     path: ../packages/flocon
   flocon_crash_reporter:
     path: ../packages/flocon_crash_reporter
-  flocon_device:
-    path: ../packages/flocon_device
   flocon_dio:
     path: ../packages/flocon_dio
   flocon_files:

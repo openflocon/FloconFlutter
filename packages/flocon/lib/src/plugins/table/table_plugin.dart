@@ -34,8 +34,8 @@ FloconTable floconTable(String tableName) => FloconTable._(tableName);
 class FloconTablePlugin implements FloconPlugin {
   FloconTablePlugin({required FloconMessageSender sender}) : _sender = sender;
 
-  static const name = 'Table';
-  static const methodAddItems = 'AddItems';
+  static const name = 'table';
+  static const methodAddItems = 'add_items';
 
   final FloconMessageSender _sender;
 
@@ -48,7 +48,12 @@ class FloconTablePlugin implements FloconPlugin {
   @override
   void onMessageReceived(FloconMessageFromServer message) {}
 
-  void registerTable(String tableName, List<TableColumnConfig> columns, {String? id, DateTime? createdAt}) {
+  void registerTable(
+    String tableName,
+    List<TableColumnConfig> columns, {
+    String? id,
+    DateTime? createdAt,
+  }) {
     try {
       // the desktop expects a JSON array, even for a single row
       final body = jsonEncode([

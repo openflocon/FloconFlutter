@@ -2,7 +2,14 @@ import 'dart:convert';
 
 import '../../flocon.dart';
 
-enum FloconWebSocketEventType { closed, closing, error, receiveMessage, sendMessage, open }
+enum FloconWebSocketEventType {
+  closed,
+  closing,
+  error,
+  receiveMessage,
+  sendMessage,
+  open,
+}
 
 /// An event of a WebSocket connection, shown with the network calls in the desktop app.
 class FloconWebSocketEvent {
@@ -13,9 +20,9 @@ class FloconWebSocketEvent {
     this.message,
     Object? error,
     DateTime? timestamp,
-  })  : size = size ?? (message == null ? 0 : utf8.encode(message).length),
-        error = error?.toString(),
-        timestamp = timestamp ?? DateTime.now();
+  }) : size = size ?? (message == null ? 0 : utf8.encode(message).length),
+       error = error?.toString(),
+       timestamp = timestamp ?? DateTime.now();
 
   final String websocketUrl;
   final FloconWebSocketEventType event;

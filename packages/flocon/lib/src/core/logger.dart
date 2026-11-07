@@ -2,7 +2,8 @@ import 'package:flutter/foundation.dart';
 
 /// Internal debug logging of the SDK. Silent in release builds.
 class FloconLogger {
-  static bool enabled = kDebugMode;
+  /// Off by default: turn it on with `Flocon.isLoggingEnabled` to see what the SDK does.
+  static bool enabled = false;
 
   static void log(String message) {
     if (enabled) debugPrint('[Flocon] $message');

@@ -2,7 +2,10 @@
 library;
 
 export 'src/config.dart';
-export 'src/client/file_uploader.dart' show FloconFileUploader, FloconUploadIdentity;
+export 'src/client/address.dart' show FloconAddress, FloconAddressError;
+export 'src/client/connection_state.dart';
+export 'src/client/file_uploader.dart'
+    show FloconFileUploader, FloconUploadIdentity;
 export 'src/core/logger.dart' show FloconLogger;
 export 'src/core/plugin.dart';
 export 'src/flocon.dart';
