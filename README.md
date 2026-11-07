@@ -232,7 +232,7 @@ a name containing `Timeout` gives a timeout (`DioExceptionType.connectionTimeout
 the connection ones (`Socket`, `Connect`, `UnknownHost`, `SSL`) a connection error
 (`DioExceptionType.connectionError` / `ClientException`), anything else an unknown error; the original name is the message.
 
-Mocks and the configuration are kept in memory: the desktop sends them again at each connection.
+Mocks and the configuration are saved on the device and apply from the next launch too, before the app connects to the desktop.
 Add the interceptor last, so the mock is not seen by interceptors added after it. Mocks of WebSocket messages are not supported.
 
 ### WebSockets
@@ -282,7 +282,8 @@ floconRegisterSharedPreferences(prefs); // optional second argument: the name of
 ```
 
 The desktop lists the keys with their typed values and lets you edit `String`, `bool`, `int`, `double`
-and `List<String>` values; an edit is only applied when its type matches the stored one.
+and `List<String>` values; an edit is only applied when its type matches the stored one. Any key can be deleted from the
+desktop (right-click on a row, then Delete). The store is shown with its type (`SharedPreferences`).
 Call it after `Flocon.initialize()` (it does nothing before). Register several instances with different names.
 
 ## Files
@@ -294,14 +295,20 @@ Flocon.initialize();
 await floconEnableFilesPlugin();
 ```
 
-The desktop can browse the folders of the app, download a file (it is uploaded to the desktop over HTTP, port 9024,
-streamed) and delete files, folders or the content of a folder.
+The desktop shows, without anything to register, the `Documents`, `Application Support`, `Caches` and `tmp` folders and,
+on Android and iOS, the whole data folder of the app (`App container`; on macOS only inside the sandbox). It can browse
+them, download a file (uploaded to the desktop over HTTPS, port 9024, streamed) and delete files, folders or the content of
+a folder.
 
-- `files` root: the data folder of the app on Android and iOS (the parent of the documents folder), the
-  application support folder on desktop. `caches` root: the cache folder. Change them with the `rootDirectory` and
-  `cachesDirectory` parameters.
-- Nothing outside of the two roots is reachable (`..` and symbolic links are resolved), and the roots
-  themselves are never deleted. A symbolic link is deleted, never followed.
+Register other folders, such as an export folder, to show them next to the default ones:
+
+```dart
+floconRegisterFilesFolder('Exports', Directory('${docs.path}/exports'));
+```
+
+- Nothing outside of the root folders is reachable (`..` and symbolic links are resolved), and the root folders themselves
+  are never deleted. A symbolic link is deleted, never followed.
+- A folder registered at the location of a default one renames it.
 
 ## Crash reporter
 

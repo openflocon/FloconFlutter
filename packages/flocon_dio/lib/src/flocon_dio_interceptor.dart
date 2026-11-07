@@ -32,6 +32,7 @@ class FloconDioInterceptor extends Interceptor {
       plugin = _network;
       if (plugin != null && (networkOptions.shouldLog?.call(options) ?? true)) {
         final url = options.uri.toString();
+        await plugin.ready; // the mocks of the previous launch
         final mock = plugin.findMock(url, options.method);
         final callId = const Uuid().v4();
         final startMs = DateTime.now().millisecondsSinceEpoch;

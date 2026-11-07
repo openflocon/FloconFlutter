@@ -14,13 +14,14 @@ class FloconFilesPlugin implements FloconPlugin {
   FloconFilesPlugin({
     required FloconMessageSender sender,
     required FloconFileSender fileSender,
-    required FloconFileSystem fileSystem,
+    required List<FloconFileRoot> defaultRoots,
   }) : _sender = sender,
        _fileSender = fileSender,
-       _fileSystem = fileSystem;
+       _defaultRoots = defaultRoots;
 
   static const name = 'files';
   // desktop -> app
+  static const methodGetRoots = 'get_roots';
   static const methodListFiles = 'list_files';
   static const methodGetFile = 'get_file';
   static const methodDeleteFile = 'delete_file';
@@ -28,10 +29,14 @@ class FloconFilesPlugin implements FloconPlugin {
   static const methodDeleteFolderContent = 'delete_folder_content';
   // app -> desktop: older desktop versions compare method names case-sensitively
   static const methodListFilesResult = 'list_files';
+  static const methodGetRootsResult = 'get_roots';
 
   final FloconMessageSender _sender;
   final FloconFileSender _fileSender;
-  final FloconFileSystem _fileSystem;
+  final List<FloconFileRoot> _defaultRoots;
+
+  // in registration order, a folder registered again keeps its place
+  final _registered = <FloconFileRoot>[];
 
   var _withFoldersSize = false;
 
@@ -40,6 +45,27 @@ class FloconFilesPlugin implements FloconPlugin {
 
   @override
   String get pluginName => name;
+
+  /// Shows a folder in the Files section of the desktop app, or renames a folder already shown.
+  void register(FloconFileRoot folder) {
+    final index = _registered.indexWhere((r) => r.id == folder.id);
+    if (index >= 0) {
+      _registered[index] = folder;
+    } else {
+      _registered.add(folder);
+    }
+  }
+
+  /// The root folders: the default ones, then the registered ones.
+  FloconFileSystem get _fileSystem {
+    // a registered folder renames a default one at the same location
+    final registered = {for (final r in _registered) r.id};
+    final defaults = [
+      for (final r in _defaultRoots)
+        if (!registered.contains(FloconFileSystem.resolvePath(r.directory.path))) r,
+    ];
+    return FloconFileSystem(roots: [...defaults, ..._registered]);
+  }
 
   @override
   void onConnectedToServer() {}
@@ -57,6 +83,8 @@ class FloconFilesPlugin implements FloconPlugin {
       return Future.value();
     }
     switch (message.method) {
+      case methodGetRoots:
+        return _enqueue(() => _sendRoots(request['requestId'] as String));
       case methodListFiles:
         _withFoldersSize = request['withFoldersSize'] as bool? ?? false;
         return _enqueue(
@@ -97,8 +125,9 @@ class FloconFilesPlugin implements FloconPlugin {
         return _enqueue(() async {
           final path = request['path'] as String;
           final isConstant = request['isConstantPath'] as bool? ?? false;
-          final folder = _fileSystem.resolve(path, isConstantPath: isConstant);
-          if (folder is Directory) await _fileSystem.deleteContents(folder);
+          final fileSystem = _fileSystem;
+          final folder = fileSystem.resolve(path, isConstantPath: isConstant);
+          if (folder is Directory) await fileSystem.deleteContents(folder);
           await _sendListing(path, isConstant, request['requestId'] as String);
         });
     }
@@ -117,14 +146,29 @@ class FloconFilesPlugin implements FloconPlugin {
     return next;
   }
 
+  Future<void> _sendRoots(String requestId) async {
+    _sender.send(
+      plugin: pluginName,
+      method: methodGetRootsResult,
+      body: jsonEncode({
+        'requestId': requestId,
+        'roots': [
+          for (final r in _fileSystem.existingRoots)
+            {'id': r.id, 'name': r.name, 'path': r.directory.path},
+        ],
+      }),
+    );
+  }
+
   Future<void> _sendListing(
     String path,
     bool isConstantPath,
     String requestId,
   ) async {
-    final folder = _fileSystem.resolve(path, isConstantPath: isConstantPath);
+    final fileSystem = _fileSystem;
+    final folder = fileSystem.resolve(path, isConstantPath: isConstantPath);
     final files = folder is Directory
-        ? await _fileSystem.list(folder, withFoldersSize: _withFoldersSize)
+        ? await fileSystem.list(folder, withFoldersSize: _withFoldersSize)
         : const <FloconFileEntry>[];
     _sender.send(
       plugin: pluginName,

@@ -44,7 +44,11 @@ void main() {
     plugin = FloconFilesPlugin(
       sender: sender,
       fileSender: fileSender,
-      fileSystem: FloconFileSystem(root: root, caches: caches),
+      defaultRoots: [
+        FloconFileRoot(id: 'files', name: 'Files', directory: root),
+        FloconFileRoot(id: 'caches', name: 'Caches', directory: caches),
+        FloconFileRoot(id: 'missing', name: 'Missing', directory: Directory('${tmp.path}/nope')),
+      ],
     );
   });
   tearDown(() => tmp.deleteSync(recursive: true));
@@ -150,6 +154,57 @@ void main() {
     expect(fileSender.uploads, hasLength(1));
   });
 
+  test('get_roots lists the roots that exist, with their id, name and path', () async {
+    await plugin.handleMessage(_msg('get_roots', {'requestId': 'r1'}));
+    final message = sender.sent.single;
+    expect((message.plugin, message.method, message.body['requestId']), ('files', 'get_roots', 'r1'));
+    expect(message.body['roots'], [
+      {'id': 'files', 'name': 'Files', 'path': root.path},
+      {'id': 'caches', 'name': 'Caches', 'path': caches.path},
+    ]);
+  });
+
+  test('a registered folder is a root: listed, browsable, and never deleted itself', () async {
+    final shared = Directory('${tmp.path}/shared')..createSync();
+    File('${shared.path}/in_group.txt').writeAsStringSync('g');
+    plugin.register(FloconFileRoot.registered(displayName: 'Group', directory: shared));
+
+    await plugin.handleMessage(_msg('get_roots', {'requestId': 'r'}));
+    final roots = (sender.sent.last.body['roots'] as List).cast<Map<String, dynamic>>();
+    expect(roots.map((r) => r['name']), ['Files', 'Caches', 'Group']);
+    final id = roots.last['id'] as String;
+
+    await plugin.handleMessage(_msg('list_files', {'requestId': 'r', 'path': id, 'isConstantPath': true}));
+    expect(files().single['name'], 'in_group.txt');
+
+    await plugin.handleMessage(_msg('delete_file', {
+      'requestId': 'r',
+      'parentPath': id,
+      'isConstantParentPath': true,
+      'filePath': shared.path,
+    }));
+    expect(shared.existsSync(), true);
+    await plugin.handleMessage(_msg('delete_file', {
+      'requestId': 'r',
+      'parentPath': id,
+      'isConstantParentPath': true,
+      'filePath': '${shared.path}/in_group.txt',
+    }));
+    expect(files(), isEmpty);
+  });
+
+  test('a registered folder renames a default one at the same location', () async {
+    plugin.register(FloconFileRoot.registered(displayName: 'Exports', directory: caches));
+    await plugin.handleMessage(_msg('get_roots', {'requestId': 'r'}));
+    final roots = (sender.sent.last.body['roots'] as List).cast<Map<String, dynamic>>();
+    expect(roots.map((r) => r['name']), ['Files', 'Exports']);
+  });
+
+  test('an unknown root id lists nothing', () async {
+    await plugin.handleMessage(_msg('list_files', {'requestId': 'r', 'path': 'nope', 'isConstantPath': true}));
+    expect(files(), isEmpty);
+  });
+
   test('unreadable requests are ignored', () async {
     await plugin.handleMessage(const FloconMessageFromServer(plugin: 'files', method: 'list_files', body: 'nope'));
     await plugin.handleMessage(_msg('list_files', {'wrong': true}));
@@ -158,7 +213,7 @@ void main() {
   });
 
   test('enabling is a no-op before Flocon.initialize', () async {
-    await floconEnableFilesPlugin(rootDirectory: root, cachesDirectory: caches);
+    await floconEnableFilesPlugin(defaultRoots: const []);
     expect(Flocon.plugin<FloconFilesPlugin>(), isNull);
   });
 }

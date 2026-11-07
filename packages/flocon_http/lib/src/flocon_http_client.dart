@@ -40,6 +40,7 @@ class FloconHttpClient extends http.BaseClient {
 
     final callId = const Uuid().v4();
     final stopwatch = Stopwatch()..start();
+    await plugin.ready; // the mocks of the previous launch
     final mock = plugin.findMock(request.url.toString(), request.method);
     try {
       final body = request is http.Request ? (request.body.isEmpty ? null : request.body) : null;

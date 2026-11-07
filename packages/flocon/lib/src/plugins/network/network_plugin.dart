@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 import '../../core/plugin.dart';
 import '../../model/message_from_server.dart';
 import 'network_overrides.dart';
+import 'network_store.dart';
 import 'web_socket_event.dart';
 
 /// Sends the network calls and WebSocket events of the app to the Flocon desktop app.
@@ -15,9 +16,13 @@ class FloconNetworkPlugin implements FloconPlugin {
     required FloconMessageSender sender,
     Random? random,
     Future<void> Function(Duration)? delay,
+    FloconNetworkStore? store,
   }) : _sender = sender,
        _random = random ?? Random(),
-       _delay = delay ?? Future<void>.delayed;
+       _delay = delay ?? Future<void>.delayed,
+        _store = store {
+    ready = _loadSaved();
+  }
 
   static const name = 'network';
   static const methodLogRequest = 'log_network_call_request';
@@ -28,7 +33,22 @@ class FloconNetworkPlugin implements FloconPlugin {
 
   final FloconMessageSender _sender;
   final Random _random;
+  final FloconNetworkStore? _store;
   final Future<void> Function(Duration) _delay;
+
+  /// Completes once the mocks and the bad network configuration saved by the previous launch are loaded.
+  /// The HTTP adapters wait for it before the first call.
+  late final Future<void> ready;
+
+  Future<void> _loadSaved() async {
+    final store = _store;
+    if (store == null) return;
+    // never overwrite what the desktop already sent while loading
+    final mocks = await store.loadMocks();
+    if (mocks != null && this.mocks.isEmpty) this.mocks = parseMocks(mocks);
+    final bad = await store.loadBadNetworkConfig();
+    if (bad != null) badQualityConfig ??= parseBadQualityConfig(bad);
+  }
 
   /// The mocks configured from the desktop. The first one matching a call wins.
   List<FloconMock> mocks = const [];
@@ -47,8 +67,12 @@ class FloconNetworkPlugin implements FloconPlugin {
     switch (message.method) {
       case methodSetupMocks:
         mocks = parseMocks(message.body);
+        _store?.saveMocks(message.body);
       case methodSetupBadNetworkConfig:
         badQualityConfig = parseBadQualityConfig(message.body);
+        _store?.saveBadNetworkConfig(
+          badQualityConfig == null ? null : message.body,
+        );
     }
   }
 

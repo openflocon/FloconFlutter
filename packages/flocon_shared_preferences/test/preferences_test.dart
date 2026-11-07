@@ -40,7 +40,7 @@ void main() {
     plugin.onConnectedToServer();
     expect(sender.sent.single.method, 'get_shared_preferences');
     expect(sender.sent.single.body, [
-      {'name': 'prefs'}
+      {'name': 'prefs', 'type': 'SharedPreferences'}
     ]);
   });
 
@@ -63,6 +63,15 @@ void main() {
         {'requestId': 'r2', 'sharedPreferenceName': 'prefs', 'key': 'count', 'intValue': 42}));
     expect(prefs.getInt('count'), 42);
     expect(sender.sent.single.method, 'get_shared_preference_value');
+  });
+
+  test('deletes a key asked from the desktop and answers with the new content', () async {
+    await plugin.handleMessage(_msg('remove_shared_preference_value',
+        {'requestId': 'r4', 'sharedPreferenceName': 'prefs', 'key': 'name'}));
+    expect(prefs.containsKey('name'), false);
+    final body = sender.sent.single.body as Map<String, dynamic>;
+    expect(body['requestId'], 'r4');
+    expect((body['rows'] as List).map((r) => r['key']), isNot(contains('name')));
   });
 
   test('ignores an edit whose type does not match', () async {

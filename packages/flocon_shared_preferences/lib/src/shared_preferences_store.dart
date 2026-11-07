@@ -11,6 +11,9 @@ class SharedPreferencesStore implements FloconPreference {
   @override
   final String name;
 
+  @override
+  String get type => 'SharedPreferences';
+
   // Pick up the changes made natively or by another isolate.
   Future<void> _refresh() async {
     try {
@@ -57,5 +60,10 @@ class SharedPreferencesStore implements FloconPreference {
         // missing key or type mismatch: ignored
         break;
     }
+  }
+
+  @override
+  Future<void> removeValue(String key) async {
+    await _prefs.remove(key);
   }
 }

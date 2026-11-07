@@ -34,61 +34,82 @@ class FloconFileEntry {
   };
 }
 
-/// File operations requested by the desktop, limited to two roots.
+/// A folder the desktop can open, shown at the top of the Files section.
+class FloconFileRoot {
+  const FloconFileRoot({
+    required this.id,
+    required this.name,
+    required this.directory,
+  });
+
+  /// A folder registered by the app, identified by its resolved path.
+  FloconFileRoot.registered({required String displayName, required this.directory})
+      : id = FloconFileSystem.resolvePath(directory.path),
+        name = displayName;
+
+  /// Stable identifier, sent back by the desktop as a constant path.
+  final String id;
+
+  /// Name shown in the desktop app.
+  final String name;
+  final Directory directory;
+}
+
+/// File operations requested by the desktop, limited to the root folders.
 ///
-/// The desktop names two root folders: `"files"` ([root]) and `"caches"` ([caches]). Any path outside
-/// of them is refused, symbolic links being resolved. The root folders themselves are never deleted.
+/// The desktop opens a root folder by its [FloconFileRoot.id], then any path inside it. Any path outside of
+/// every root is refused, symbolic links being resolved. The root folders themselves are never deleted.
 class FloconFileSystem {
-  FloconFileSystem({required this.root, required this.caches});
+  FloconFileSystem({required this.roots});
 
-  final Directory root;
-  final Directory caches;
+  /// The folders the desktop can access, in the order they are shown.
+  final List<FloconFileRoot> roots;
 
-  /// The folder or file a desktop path points to, or null if it is outside the allowed roots.
+  /// The roots that exist, as shown in the desktop app.
+  List<FloconFileRoot> get existingRoots => [
+        for (final root in roots)
+          if (root.directory.existsSync()) root,
+      ];
+
+  /// The folder or file a desktop path points to, or null if it is outside the roots.
   FileSystemEntity? resolve(String path, {required bool isConstantPath}) {
     if (isConstantPath) {
-      if (path == 'files') return root;
-      if (path == 'caches') return caches;
+      for (final root in roots) {
+        if (root.id == path) return root.directory;
+      }
+      return null;
     }
     if (!p.isAbsolute(path) || !contains(path)) return null;
-    return FileSystemEntity.isDirectorySync(path)
-        ? Directory(path)
-        : File(path);
+    return FileSystemEntity.isDirectorySync(path) ? Directory(path) : File(path);
   }
 
   /// Whether a path is a root folder or inside one, once `..` and symbolic links are resolved.
-  bool contains(String path) => _within(_resolved(path));
+  bool contains(String path) => _within(resolvePath(path));
 
   bool _within(String resolvedPath) {
     final candidate = p.split(resolvedPath);
-    return [root.path, caches.path].any((r) {
-      final base = p.split(_resolved(r));
+    return roots.any((root) {
+      final base = p.split(resolvePath(root.directory.path));
       return candidate.length >= base.length &&
-          [
-            for (var i = 0; i < base.length; i++) candidate[i] == base[i],
-          ].every((e) => e);
+          [for (var i = 0; i < base.length; i++) candidate[i] == base[i]].every((e) => e);
     });
   }
 
-  /// Like [_resolved], but a final symbolic link is kept as it is: it is the item itself, whatever it targets.
+  /// Like [resolvePath], but a final symbolic link is kept as it is: it is the item itself, whatever it targets.
   static String _resolvedKeepingLink(String path) {
     final normalized = p.normalize(p.absolute(path));
-    return p.join(_resolved(p.dirname(normalized)), p.basename(normalized));
+    return p.join(resolvePath(p.dirname(normalized)), p.basename(normalized));
   }
 
-  bool _isRoot(String resolved) {
-    return resolved == _resolved(root.path) ||
-        resolved == _resolved(caches.path);
-  }
+  bool _isRoot(String resolved) => roots.any((root) => resolved == resolvePath(root.directory.path));
 
   /// Normalizes a path and resolves its symbolic links, also when it does not exist (the deepest
   /// existing parent is resolved).
-  static String _resolved(String path) {
+  static String resolvePath(String path) {
     final normalized = p.normalize(p.absolute(path));
     try {
-      return FileSystemEntity.typeSync(normalized, followLinks: false) ==
-              FileSystemEntityType.notFound
-          ? p.join(_resolved(p.dirname(normalized)), p.basename(normalized))
+      return FileSystemEntity.typeSync(normalized, followLinks: false) == FileSystemEntityType.notFound
+          ? p.join(resolvePath(p.dirname(normalized)), p.basename(normalized))
           : File(normalized).resolveSymbolicLinksSync();
     } catch (_) {
       return normalized;

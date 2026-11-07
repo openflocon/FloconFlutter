@@ -8,38 +8,46 @@ import 'files_plugin.dart';
 
 /// Lets the Flocon desktop app browse, download and delete the files of the app.
 ///
-/// By default the `files` root is the data folder of the app (the parent of the documents folder) on
-/// Android and iOS, and the application support folder on desktop; the `caches` root is the cache
-/// folder. Nothing outside of them is reachable. Pass [rootDirectory] and [cachesDirectory] to change them.
+/// Without anything to register, the desktop shows the documents, application support, cache and temporary folders
+/// and, on Android and iOS, the whole data folder of the app. Register the other folders with
+/// [floconRegisterFilesFolder]. Nothing outside of the root folders is reachable.
 ///
 /// Call it after `Flocon.initialize()` (it does nothing before).
-Future<void> floconEnableFilesPlugin({
-  Directory? rootDirectory,
-  Directory? cachesDirectory,
-}) async {
+Future<void> floconEnableFilesPlugin({List<FloconFileRoot>? defaultRoots}) async {
   final sender = Flocon.messageSender;
   final fileSender = Flocon.fileSender;
-  if (sender == null ||
-      fileSender == null ||
-      Flocon.plugin<FloconFilesPlugin>() != null) {
+  if (sender == null || fileSender == null || Flocon.plugin<FloconFilesPlugin>() != null) {
     return;
   }
+  Flocon.register(FloconFilesPlugin(
+    sender: sender,
+    fileSender: fileSender,
+    defaultRoots: defaultRoots ?? await _appDefaultRoots(),
+  ));
+}
 
-  final root = rootDirectory ?? await _defaultRoot();
-  final caches = cachesDirectory ?? await getApplicationCacheDirectory();
-  Flocon.register(
-    FloconFilesPlugin(
-      sender: sender,
-      fileSender: fileSender,
-      fileSystem: FloconFileSystem(root: root, caches: caches),
-    ),
+/// Shows a folder in the Files section of the Flocon desktop app, under [displayName]; a folder already shown
+/// is renamed. The plugin must be enabled with [floconEnableFilesPlugin] first (it does nothing before).
+void floconRegisterFilesFolder(String displayName, Directory directory) {
+  Flocon.plugin<FloconFilesPlugin>()?.register(
+    FloconFileRoot.registered(displayName: displayName, directory: directory),
   );
 }
 
-Future<Directory> _defaultRoot() async {
-  if (Platform.isAndroid || Platform.isIOS) {
-    return (await getApplicationDocumentsDirectory()).parent;
-  }
-  // On desktop the documents folder is the one of the user: stay in the folder of the app.
-  return getApplicationSupportDirectory();
+Future<List<FloconFileRoot>> _appDefaultRoots() async {
+  final documents = await getApplicationDocumentsDirectory();
+  final support = await getApplicationSupportDirectory();
+  final caches = await getApplicationCacheDirectory();
+  final tmp = await getTemporaryDirectory();
+  // Where the documents folder is the one of the app: Android, iOS, and the sandbox of macOS. On an unsandboxed
+  // desktop it is the folder of the user, which is not shown.
+  final isAppContainer =
+      Platform.isAndroid || Platform.isIOS || Platform.environment.containsKey('APP_SANDBOX_CONTAINER_ID');
+  return [
+    if (isAppContainer) FloconFileRoot(id: 'documents', name: 'Documents', directory: documents),
+    FloconFileRoot(id: 'applicationSupport', name: 'Application Support', directory: support),
+    FloconFileRoot(id: 'caches', name: 'Caches', directory: caches),
+    FloconFileRoot(id: 'tmp', name: 'tmp', directory: tmp),
+    if (isAppContainer) FloconFileRoot(id: 'container', name: 'App container', directory: documents.parent),
+  ];
 }

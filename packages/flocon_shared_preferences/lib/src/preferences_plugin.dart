@@ -17,6 +17,7 @@ class FloconPreferencesPlugin implements FloconPlugin {
   static const methodGetSharedPreferenceValue = 'get_shared_preference_value';
   // desktop -> app
   static const methodSetSharedPreferenceValue = 'set_shared_preference_value';
+  static const methodRemoveSharedPreferenceValue = 'remove_shared_preference_value';
 
   final FloconMessageSender _sender;
   final Map<String, FloconPreference> _preferences = {};
@@ -62,6 +63,12 @@ class FloconPreferencesPlugin implements FloconPlugin {
           );
           // send the content again, so that the desktop shows what was actually stored
           await _sendContent(preference, request['requestId'] as String);
+        case methodRemoveSharedPreferenceValue:
+          final request = jsonDecode(message.body) as Map<String, dynamic>;
+          final preference = _preferences[request['sharedPreferenceName']];
+          if (preference == null) return;
+          await preference.removeValue(request['key'] as String);
+          await _sendContent(preference, request['requestId'] as String);
       }
     } catch (_) {
       // an unreadable request must never break the app
@@ -70,7 +77,9 @@ class FloconPreferencesPlugin implements FloconPlugin {
 
   void sendPreferenceList() {
     final names = _preferences.keys.toList()..sort();
-    _send(methodGetSharedPreferences, [for (final n in names) {'name': n}]);
+    _send(methodGetSharedPreferences, [
+      for (final n in names) {'name': n, 'type': _preferences[n]!.type},
+    ]);
   }
 
   Future<void> _sendContent(FloconPreference preference, String requestId) async {

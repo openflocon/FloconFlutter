@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:flocon/flocon.dart';
+import 'package:flocon/src/plugins/network/network_store.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _Sender implements FloconMessageSender {
@@ -281,5 +283,79 @@ void main() {
       floconErrorKindOf('java.lang.IllegalStateException'),
       FloconErrorKind.unknown,
     );
+  });
+
+  persistenceTests();
+}
+
+void persistenceTests() {
+  group('persistence', () {
+    late Directory dir;
+    late FloconNetworkStore store;
+
+    setUp(() {
+      dir = Directory.systemTemp.createTempSync('flocon_network');
+      store = FloconNetworkStore(() async => dir);
+    });
+    tearDown(() => dir.deleteSync(recursive: true));
+
+    FloconNetworkPlugin build() =>
+        FloconNetworkPlugin(sender: _Sender(), store: store);
+
+    test('the mocks and the bad network configuration come back at the next launch', () async {
+      final first = build();
+      first.onMessageReceived(_msg('setup_mocks', [
+        _mock('https://x/.*', 'GET', {'httpCode': 200, 'body': 'saved'}),
+      ]));
+      first.onMessageReceived(_msg('setup_bad_network_config', {
+        'latency': {'latencyTriggerProbability': 1, 'minLatencyMs': 1, 'maxLatencyMs': 2},
+        'errorProbability': 0,
+        'errors': <Object>[],
+      }));
+      // let the writes finish
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+
+      final second = build();
+      await second.ready;
+      expect(second.mocks.single.body, 'saved');
+      expect(second.badQualityConfig!.maxLatencyMs, 2);
+      expect(second.findMock('https://x/a', 'GET'), isNotNull);
+    });
+
+    test('what the desktop sends replaces what was saved, an empty list clears the mocks', () async {
+      final first = build();
+      first.onMessageReceived(_msg('setup_mocks', [
+        _mock('.*', '*', {'httpCode': 200}),
+      ]));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      first.onMessageReceived(_msg('setup_mocks', <Object>[]));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      final second = build();
+      await second.ready;
+      expect(second.mocks, isEmpty);
+    });
+
+    test('an unreadable bad network configuration is not kept', () async {
+      final first = build();
+      first.onMessageReceived(_msg('setup_bad_network_config', {
+        'latency': {'latencyTriggerProbability': 1, 'minLatencyMs': 1, 'maxLatencyMs': 2},
+        'errorProbability': 0,
+        'errors': <Object>[],
+      }));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      first.onMessageReceived(const FloconMessageFromServer(plugin: 'network', method: 'setup_bad_network_config', body: '{}'));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      final second = build();
+      await second.ready;
+      expect(second.badQualityConfig, isNull);
+    });
+
+    test('a broken file gives no configuration', () async {
+      Directory('${dir.path}/network').createSync();
+      File('${dir.path}/network/flocon_network_mocks.json').writeAsStringSync('nope');
+      final plugin = build();
+      await plugin.ready;
+      expect(plugin.mocks, isEmpty);
+    });
   });
 }

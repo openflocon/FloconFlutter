@@ -7,8 +7,10 @@ import 'client/flocon_client.dart';
 import 'config.dart';
 import 'core/logger.dart';
 import 'core/plugin.dart';
+import 'core/storage.dart';
 import 'plugins/analytics/analytics_plugin.dart';
 import 'plugins/network/network_plugin.dart';
+import 'plugins/network/network_store.dart';
 import 'plugins/table/table_plugin.dart';
 
 /// Entry point of the Flocon SDK.
@@ -57,7 +59,12 @@ class Flocon {
   static void initialize({FloconConfig config = const FloconConfig()}) {
     if (_client != null) return;
     final client = FloconClient(config);
-    client.register(FloconNetworkPlugin(sender: client));
+    client.register(
+      FloconNetworkPlugin(
+        sender: client,
+        store: FloconNetworkStore(() => floconStorageDirectory(client.config)),
+      ),
+    );
     client.register(FloconAnalyticsPlugin(sender: client));
     client.register(FloconTablePlugin(sender: client));
     _client = client;
