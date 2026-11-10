@@ -84,10 +84,12 @@ Start the SDK as early as possible:
 
 ```dart
 import 'package:flocon/flocon.dart';
+import 'package:flutter/foundation.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  Flocon.initialize(); // connects in the background, retries every 3s, keeps what is logged meanwhile
+  // debug builds only: connects in the background, retries every 3s, keeps what is logged meanwhile
+  if (kDebugMode) Flocon.initialize();
   runApp(const MyApp());
 }
 ```
@@ -100,20 +102,9 @@ Flocon is a debugging tool: **do not start it in release builds**. Once connecte
 network calls, edit your preferences, delete files and run SQL on your databases, and the connection accepts the
 self-signed certificate of the desktop without verifying it.
 
-Start it behind `kDebugMode`:
-
-```dart
-import 'package:flutter/foundation.dart';
-
-void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  if (kDebugMode) Flocon.initialize();
-  runApp(const MyApp());
-}
-```
-
-That is the only guard you need: every other Flocon call (`floconAnalytics`, `floconTimeline`, `FloconDioInterceptor`,
-`floconEnableFilesPlugin`...) does nothing when `initialize` was not called, so you can leave them in your code.
+The `kDebugMode` check of `initialize` above is the only guard you need: every other Flocon call (`floconAnalytics`,
+`floconTimeline`, `FloconDioInterceptor`, `floconEnableFilesPlugin`...) does nothing when `initialize` was not called, so
+you can leave them in your code.
 `kDebugMode` is a constant, so the call is removed from release builds by the compiler. Use `!kReleaseMode` instead to also
 keep it in profile builds.
 
