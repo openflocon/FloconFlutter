@@ -93,7 +93,52 @@ void main() {
 ```
 
 Calling `initialize` more than once has no effect, and every Flocon call is a no-op before it.
-You will probably want to enable it in debug builds only (`if (kDebugMode) Flocon.initialize();`).
+
+### Debug builds only
+
+Flocon is a debugging tool: **do not start it in release builds**. Once connected, the desktop app can read your
+network calls, edit your preferences, delete files and run SQL on your databases, and the connection accepts the
+self-signed certificate of the desktop without verifying it.
+
+Start it behind `kDebugMode`:
+
+```dart
+import 'package:flutter/foundation.dart';
+
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  if (kDebugMode) Flocon.initialize();
+  runApp(const MyApp());
+}
+```
+
+That is the only guard you need: every other Flocon call (`floconAnalytics`, `floconTimeline`, `FloconDioInterceptor`,
+`floconEnableFilesPlugin`...) does nothing when `initialize` was not called, so you can leave them in your code.
+`kDebugMode` is a constant, so the call is removed from release builds by the compiler. Use `!kReleaseMode` instead to also
+keep it in profile builds.
+
+The packages stay in your `dependencies` (a `dev_dependency` cannot be imported from `lib/`), so their native code and
+their dependencies (`device_info_plus`, `sqflite`, `mobile_scanner`...) are still in the release binary. To keep the
+Flocon Dart code out of it too, start Flocon from a debug-only entry point, and do all your Flocon setup there (no Flocon
+import in the rest of `lib/`):
+
+```dart
+// lib/main_debug.dart
+import 'package:flocon/flocon.dart';
+import 'package:flutter/widgets.dart';
+import 'main.dart' as app;
+
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  Flocon.initialize();
+  app.main();
+}
+```
+
+```bash
+flutter run -t lib/main_debug.dart   # debug, with Flocon
+flutter build apk                    # release, from lib/main.dart, without Flocon
+```
 
 ### Host
 
