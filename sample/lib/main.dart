@@ -28,7 +28,15 @@ import 'theme/sample_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  Flocon.isLoggingEnabled = kDebugMode;
+  // Debug builds only: every other Flocon call of the app does nothing when Flocon is not initialized.
+  if (kDebugMode) await initializeFlocon();
+  await SampleStartup.run();
+  runApp(const SampleApp());
+}
+
+/// Starts Flocon and the plugins of the sample.
+Future<void> initializeFlocon() async {
+  Flocon.isLoggingEnabled = true;
   // Android emulator reaches the host machine through 10.0.2.2.
   // On a physical device, use Flocon.connect (or scan the QR code) with the local IP of the computer running Flocon.
   Flocon.initialize(config: FloconConfig(host: Platform.isAndroid ? '10.0.2.2' : 'localhost'));
@@ -36,9 +44,7 @@ Future<void> main() async {
   await floconEnableDatabasePlugin();
   await floconEnableCrashReporter();
   FloconLifecycleObserver.start();
-  await SampleStartup.run();
   floconRegisterSharedPreferences(await SharedPreferences.getInstance());
-  runApp(const SampleApp());
 }
 
 class SampleApp extends StatelessWidget {
