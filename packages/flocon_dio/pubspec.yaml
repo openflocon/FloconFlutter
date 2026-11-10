@@ -1,11 +1,19 @@
 name: flocon_dio
 description: Dio interceptor that sends your HTTP calls to the Flocon desktop debugger.
+repository: https://github.com/openflocon/FloconFlutter/tree/main/packages/flocon_dio
+issue_tracker: https://github.com/openflocon/FloconFlutter/issues
+topics:
+  - debugging
+  - devtools
+  - network
+  - dio
+  - flocon
 version: 0.0.1
 publish_to: none
 
 environment:
   sdk: ^3.8.1
-  flutter: ">=1.17.0"
+  flutter: ">=3.32.0"
 
 dependencies:
   flutter:

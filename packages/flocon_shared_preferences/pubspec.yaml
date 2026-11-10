@@ -1,11 +1,18 @@
 name: flocon_shared_preferences
 description: Shows and edits your SharedPreferences in the Flocon desktop debugger.
+repository: https://github.com/openflocon/FloconFlutter/tree/main/packages/flocon_shared_preferences
+issue_tracker: https://github.com/openflocon/FloconFlutter/issues
+topics:
+  - debugging
+  - devtools
+  - shared-preferences
+  - flocon
 version: 0.0.1
 publish_to: none
 
 environment:
   sdk: ^3.8.1
-  flutter: ">=1.17.0"
+  flutter: ">=3.32.0"
 
 dependencies:
   flutter:

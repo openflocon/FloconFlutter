@@ -1,11 +1,18 @@
 name: flocon_qr_scanner
 description: Connects your app to the Flocon desktop by scanning its QR code.
+repository: https://github.com/openflocon/FloconFlutter/tree/main/packages/flocon_qr_scanner
+issue_tracker: https://github.com/openflocon/FloconFlutter/issues
+topics:
+  - debugging
+  - devtools
+  - qr-code
+  - flocon
 version: 0.0.1
 publish_to: none
 
 environment:
   sdk: ^3.8.1
-  flutter: ">=1.17.0"
+  flutter: ">=3.32.0"
 
 dependencies:
   flutter:

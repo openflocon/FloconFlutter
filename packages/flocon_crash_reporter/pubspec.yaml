@@ -1,11 +1,18 @@
 name: flocon_crash_reporter
 description: Crash reporter plugin for Flocon, sends the errors of your Flutter app to the Flocon desktop debugger.
+repository: https://github.com/openflocon/FloconFlutter/tree/main/packages/flocon_crash_reporter
+issue_tracker: https://github.com/openflocon/FloconFlutter/issues
+topics:
+  - debugging
+  - devtools
+  - crash-reporting
+  - flocon
 version: 0.0.1
 publish_to: none
 
 environment:
   sdk: ^3.8.1
-  flutter: ">=1.17.0"
+  flutter: ">=3.32.0"
 
 dependencies:
   flutter:

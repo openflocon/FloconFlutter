@@ -489,9 +489,6 @@ Flocon.register(MyPlugin()); // after Flocon.initialize()
 
 To send messages, get the sender with `Flocon.messageSender`; find a registered plugin with `Flocon.plugin<T>()`.
 
-```dart
-```
-
 ## Sample
 
 `sample/` is a Flutter app (Android, iOS, macOS) that looks like the Flocon Desktop dark theme, and like the demos of the
