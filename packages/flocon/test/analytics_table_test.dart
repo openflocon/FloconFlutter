@@ -31,10 +31,11 @@ void main() {
     expect((m.plugin, m.method), ('analytics', 'add_items'));
     final items = m.body as List;
     expect(items, hasLength(2));
-    expect(items[0]['analyticsTableId'], 'firebase');
+    expect(items[0]['analytics_table_id'], 'firebase');
     expect(items[0]['properties'], [
       {'name': 'id', 'value': 'pay'},
     ]);
+    expect(items[0].keys.toSet(), {'id', 'analytics_table_id', 'event_name', 'created_at', 'properties'});
     expect(items[1]['properties'], isEmpty);
   });
 

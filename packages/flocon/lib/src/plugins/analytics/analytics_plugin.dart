@@ -72,9 +72,9 @@ class FloconAnalyticsPlugin implements FloconPlugin {
         for (final e in events)
           {
             'id': const Uuid().v4(),
-            'analyticsTableId': streamName,
-            'eventName': e.eventName,
-            'createdAt': now,
+            'analytics_table_id': streamName,
+            'event_name': e.eventName,
+            'created_at': now,
             'properties': [
               for (final p in e.properties) {'name': p.name, 'value': p.value},
             ],
