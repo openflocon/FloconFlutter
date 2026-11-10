@@ -23,8 +23,7 @@ dependencies:
 ```dart
 import 'package:flocon_crash_reporter/flocon_crash_reporter.dart';
 
-Flocon.initialize();
-await floconEnableCrashReporter();
+await startFlocon((flocon) => flocon..install(FloconCrashReporter()));
 ```
 
 Errors are saved on disk and sent on the next connection, even after a restart. Native crashes are not reported.

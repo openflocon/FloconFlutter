@@ -72,6 +72,8 @@ class Flocon {
   /// Starts the SDK. It connects in the background to `config.host` (`localhost` by default), retrying every
   /// 3 seconds until a desktop is reachable, and again whenever the connection drops; what the app logs is kept in
   /// memory meanwhile. Calling it twice has no effect.
+  ///
+  /// [startFlocon] calls it, and also installs the plugins with their options: prefer it.
   static void initialize({FloconConfig config = const FloconConfig()}) {
     if (_client != null) return;
     final client = FloconClient(config);
@@ -83,10 +85,6 @@ class Flocon {
     );
     client.register(FloconAnalyticsPlugin(sender: client));
     client.register(FloconTablePlugin(sender: client));
-    client.register(FloconTimelinePlugin(sender: client));
-    client.register(FloconFeatureFlagsPlugin(sender: client));
-    client.register(FloconDeeplinksPlugin(sender: client));
-    client.register(FloconDashboardPlugin(sender: client));
     client.register(FloconTimelinePlugin(sender: client));
     client.register(FloconFeatureFlagsPlugin(sender: client));
     client.register(FloconDeeplinksPlugin(sender: client));

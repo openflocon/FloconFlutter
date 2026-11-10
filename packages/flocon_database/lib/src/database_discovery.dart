@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 
 /// A SQLite database the desktop can query.
-class FloconDatabase {
-  const FloconDatabase({required this.displayName, required this.path});
+class FloconDatabaseFile {
+  const FloconDatabaseFile({required this.displayName, required this.path});
 
   final String displayName;
   final String path;
@@ -25,21 +25,21 @@ class FloconDatabaseDiscovery {
 
   static const _header = [0x53, 0x51, 0x4c, 0x69, 0x74, 0x65, 0x20, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x20, 0x33, 0x00];
 
-  Future<List<FloconDatabase>> databases() async {
-    final found = <String, FloconDatabase>{};
+  Future<List<FloconDatabaseFile>> databases() async {
+    final found = <String, FloconDatabaseFile>{};
     for (final directory in await _directories()) {
       await _scan(directory, 0, found);
     }
     return found.values.toList()..sort((a, b) => a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase()));
   }
 
-  Future<void> _scan(Directory directory, int depth, Map<String, FloconDatabase> found) async {
+  Future<void> _scan(Directory directory, int depth, Map<String, FloconDatabaseFile> found) async {
     try {
       if (!await directory.exists()) return;
       await for (final entity in directory.list(followLinks: false)) {
         if (entity is File) {
           if (await isSqlite(entity)) {
-            final database = FloconDatabase(displayName: p.basename(entity.path), path: entity.path);
+            final database = FloconDatabaseFile(displayName: p.basename(entity.path), path: entity.path);
             found[database.id] = database;
           }
         } else if (entity is Directory && depth < maxDepth) {

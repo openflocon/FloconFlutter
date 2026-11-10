@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../core/plugin.dart';
 import '../../model/message_from_server.dart';
+import 'network_options.dart';
 import 'network_overrides.dart';
 import 'network_store.dart';
 import 'web_socket_event.dart';
@@ -49,6 +50,17 @@ class FloconNetworkPlugin implements FloconPlugin {
     final bad = await store.loadBadNetworkConfig();
     if (bad != null) badQualityConfig ??= parseBadQualityConfig(bad);
   }
+
+  /// The options installed with `startFlocon` (`install(FloconNetwork(...))`).
+  FloconNetwork options = const FloconNetwork();
+
+  /// Whether [request] is sent to the desktop app, as decided by [FloconNetwork.shouldLog].
+  bool shouldLog(FloconHttpRequest request) => options.shouldLog?.call(request) ?? true;
+
+  /// Whether [response] is an image: a `Content-Type: image/*` header, or [FloconNetwork.isImage].
+  bool isImage(FloconHttpRequest request, FloconHttpResponse response) =>
+      (response.contentType?.toLowerCase().startsWith('image/') ?? false) ||
+      (options.isImage?.call(request, response) ?? false);
 
   /// The mocks configured from the desktop. The first one matching a call wins.
   List<FloconMock> mocks = const [];

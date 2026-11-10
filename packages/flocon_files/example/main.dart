@@ -7,9 +7,9 @@ import 'package:flutter/widgets.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  if (kDebugMode) Flocon.initialize();
-
-  // Shows the default folders of the app; call it after Flocon.initialize().
-  await floconEnableFilesPlugin();
-  floconRegisterFilesFolder('Exports', Directory('${Directory.systemTemp.path}/exports'));
+  if (kDebugMode) {
+    // shows the usual folders of the app
+    await startFlocon((flocon) => flocon..install(const FloconFiles()));
+    floconRegisterFilesFolder('Exports', Directory('${Directory.systemTemp.path}/exports'));
+  }
 }

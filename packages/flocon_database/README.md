@@ -23,8 +23,8 @@ dependencies:
 ```dart
 import 'package:flocon_database/flocon_database.dart';
 
-Flocon.initialize();
-await floconEnableDatabasePlugin(); // the databases, documents and application support folders
+// the databases, documents and application support folders
+await startFlocon((flocon) => flocon..install(FloconDatabase()));
 floconRegisterDatabase('Shared', '/path/to/shared.sqlite');
 floconLogDatabaseQuery(path, statement, args); // from the hook of your database library
 ```

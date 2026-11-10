@@ -4,19 +4,30 @@ import 'package:dio/dio.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:flocon/flocon.dart';
-import 'network_options.dart';
 
-/// Dio interceptor that sends every call to the Flocon desktop app.
+/// Sends the calls of a [Dio] to the Flocon desktop app.
+extension FloconDio on Dio {
+  /// Adds the [FloconDioInterceptor], and returns this Dio:
+  ///
+  /// ```dart
+  /// final dio = Dio(BaseOptions(baseUrl: baseUrl)).withFlocon();
+  /// ```
+  ///
+  /// Call it after adding your own interceptors: the Flocon one must be the last, so it sees the final request and
+  /// the raw response. The options (`shouldLog`, `isImage`) are those of `FloconNetwork`, installed with `startFlocon`.
+  Dio withFlocon() {
+    interceptors.add(FloconDioInterceptor());
+    return this;
+  }
+}
+
+/// Dio interceptor that sends every call to the Flocon desktop app. Add it with [FloconDio.withFlocon].
 ///
-/// ```dart
-/// final dio = Dio()..interceptors.add(FloconDioInterceptor());
-/// ```
-/// Add it last, so it sees the final request and the raw response.
+/// Add it last, so it sees the final request and the raw response. The calls go through untouched when Flocon is not
+/// started.
 class FloconDioInterceptor extends Interceptor {
-  FloconDioInterceptor({this.networkOptions = const FloconNetworkOptions(), FloconNetworkPlugin? plugin})
-      : _plugin = plugin;
+  FloconDioInterceptor({FloconNetworkPlugin? plugin}) : _plugin = plugin;
 
-  final FloconNetworkOptions networkOptions;
   final FloconNetworkPlugin? _plugin;
 
   static const _extraKey = 'flocon_call';
@@ -30,7 +41,7 @@ class FloconDioInterceptor extends Interceptor {
     FloconNetworkOverride? override;
     try {
       plugin = _network;
-      if (plugin != null && (networkOptions.shouldLog?.call(options) ?? true)) {
+      if (plugin != null && plugin.shouldLog(_request(options))) {
         final url = options.uri.toString();
         await plugin.ready; // the mocks of the previous launch
         final mock = plugin.findMock(url, options.method);
@@ -146,10 +157,10 @@ class FloconDioInterceptor extends Interceptor {
       final plugin = _network;
       if (call != null && plugin != null) {
         final contentType = response.headers.value('content-type');
-        var isImage = contentType?.toLowerCase().startsWith('image/') ?? false;
-        if (!isImage) {
-          isImage = networkOptions.isImage?.call(response.requestOptions, response) ?? false;
-        }
+        final isImage = plugin.isImage(
+          _request(response.requestOptions),
+          FloconHttpResponse(statusCode: response.statusCode, headers: _responseHeaders(response.headers)),
+        );
         final body = isImage ? null : _encodeBody(response.data);
         plugin.logResponse(
           callId: call.id,
@@ -190,6 +201,9 @@ class FloconDioInterceptor extends Interceptor {
     } catch (_) {}
     handler.next(err);
   }
+
+  static FloconHttpRequest _request(RequestOptions options) =>
+      FloconHttpRequest(url: options.uri, method: options.method, headers: _headers(options.headers));
 
   static Map<String, String> _headers(Map<String, dynamic> headers) =>
       headers.map((k, v) => MapEntry(k, v.toString()));

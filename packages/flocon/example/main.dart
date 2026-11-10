@@ -2,10 +2,13 @@ import 'package:flocon/flocon.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Connects in the background to the desktop app (localhost by default), retrying every 3 seconds.
-  if (kDebugMode) Flocon.initialize();
+  if (kDebugMode) {
+    await startFlocon((flocon) => flocon
+      ..install(FloconNetwork(isImage: (request, _) => request.url.host == 'picsum.photos')));
+  }
 
   floconAnalytics('firebase').logEvents([
     AnalyticsEvent(eventName: 'app_started', properties: [AnalyticsProperty('source', 'example')]),

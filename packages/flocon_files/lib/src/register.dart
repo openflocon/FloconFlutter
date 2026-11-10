@@ -6,7 +6,25 @@ import 'package:path_provider/path_provider.dart';
 import 'file_system.dart';
 import 'files_plugin.dart';
 
-/// Lets the Flocon desktop app browse, download and delete the files of the app.
+/// The Files plugin, to install with `startFlocon`: the Flocon desktop app browses, downloads and deletes the files
+/// of the app.
+///
+/// ```dart
+/// await startFlocon((flocon) => flocon..install(FloconFiles()));
+/// ```
+///
+/// See [floconEnableFilesPlugin] for the folders shown, and [floconRegisterFilesFolder] to add others.
+class FloconFiles extends FloconPluginFactory {
+  const FloconFiles({this.defaultRoots});
+
+  /// The folders shown without registering them. The usual folders of the app when null.
+  final List<FloconFileRoot>? defaultRoots;
+
+  @override
+  Future<void> install() => floconEnableFilesPlugin(defaultRoots: defaultRoots);
+}
+
+/// Lets the Flocon desktop app browse, download and delete the files of the app. `install(FloconFiles())` calls it.
 ///
 /// Without anything to register, the desktop shows the documents, application support, cache and temporary folders
 /// and, on Android and iOS, the whole data folder of the app. Register the other folders with

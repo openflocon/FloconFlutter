@@ -6,9 +6,12 @@ import 'package:flutter/widgets.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  if (kDebugMode) Flocon.initialize();
-
-  // Add it last, so it sees the final request and the raw response.
-  final dio = Dio()..interceptors.add(FloconDioInterceptor());
+  if (kDebugMode) {
+    // the network options apply to every client
+    await startFlocon((flocon) => flocon
+      ..install(FloconNetwork(isImage: (request, _) => request.url.host == 'picsum.photos')));
+  }
+  // withFlocon() adds the Flocon interceptor: call it after adding your own interceptors.
+  final dio = Dio().withFlocon();
   await dio.get<Object?>('https://httpbin.org/get');
 }

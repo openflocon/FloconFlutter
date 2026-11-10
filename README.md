@@ -7,20 +7,20 @@ Once the SDK is started, your app connects to the Flocon desktop app and shows, 
 
 | Feature | How |
 | --- | --- |
-| **Network** (HTTP) | [`FloconDioInterceptor`](#dio) for [Dio](https://pub.dev/packages/dio), [`FloconHttpClient`](#packagehttp) for [`package:http`](https://pub.dev/packages/http). Headers, bodies, timing, errors, images. Separate packages, so you only pull the HTTP library you use |
+| **Network** (HTTP) | [`dio.withFlocon()`](#dio) for [Dio](https://pub.dev/packages/dio), [`client.withFlocon()`](#packagehttp) for [`package:http`](https://pub.dev/packages/http). Headers, bodies, timing, errors, images. Separate packages, so you only pull the HTTP library you use |
 | **Network mocks** and **bad network** | configured from the desktop, applied by the Dio and `http` adapters, nothing to code (see [Mocks](#mocks-and-bad-network)) |
 | **Network** (WebSocket) | [`floconLogWebSocketEvent`](#websockets): log the events of the connections you want to inspect |
 | **Analytics** | [`floconAnalytics(stream)`](#analytics): one table per stream (e.g. per provider) |
 | **Feature flags** | [`floconFeatureFlags(provider)`](#feature-flags): the flags your app evaluated, with their variant and payload |
 | **Timeline** | [`floconTimeline`](#timeline): navigation, user actions, lifecycle and your own events |
 | **Deeplinks** | [`floconRegisterDeeplinks`](#deeplinks): the deeplinks of your app, with their parameters |
-| **Databases** | [`floconEnableDatabasePlugin`](#databases): query the SQLite databases of your app, and see the queries it runs |
+| **Databases** | [`install(FloconDatabase())`](#databases): query the SQLite databases of your app, and see the queries it runs |
 | **Dashboard** | [`floconDashboard`](#dashboard): values of your app updated live, and buttons, inputs and forms that run actions in it |
 | **Tables** | [`floconTable(name)`](#tables): any structured data you want to inspect while the app runs |
-| **Preferences** | [`floconRegisterSharedPreferences`](#preferences): browse and edit your `SharedPreferences` from the desktop |
+| **Preferences** | [`install(FloconSharedPreferences(prefs))`](#preferences): browse and edit your `SharedPreferences` from the desktop |
 | **App icon** | your app shows with its icon in the desktop, nothing to set up |
-| **Files** | [`floconEnableFilesPlugin`](#files): browse, download and delete the files of your app from the desktop |
-| **Crash reporter** | [`floconEnableCrashReporter`](#crash-reporter): uncaught Dart and Flutter errors, with their stack trace |
+| **Files** | [`install(FloconFiles())`](#files): browse, download and delete the files of your app from the desktop |
+| **Crash reporter** | [`install(FloconCrashReporter())`](#crash-reporter): uncaught Dart and Flutter errors, with their stack trace |
 
 ## Packages
 
@@ -29,8 +29,8 @@ The SDK is split in several packages, so that you only depend on the libraries y
 | Package | Content | Depends on |
 | --- | --- | --- |
 | `flocon` | connection, app icon (native code for Android, iOS and macOS), Network (WebSocket events, mocks), Analytics, Tables, custom plugins | `path_provider`, no HTTP library |
-| `flocon_dio` | `FloconDioInterceptor` | `dio` |
-| `flocon_http` | `FloconHttpClient` | `http` |
+| `flocon_dio` | `dio.withFlocon()` (`FloconDioInterceptor`) | `dio` |
+| `flocon_http` | `client.withFlocon()` (`FloconHttpClient`) | `http` |
 | `flocon_shared_preferences` | Preferences plugin | `shared_preferences` |
 | `flocon_files` | Files plugin | `path_provider` |
 | `flocon_crash_reporter` | Crash reporter plugin | `path_provider` |
@@ -80,21 +80,43 @@ dependencies:
 
 ## Getting started
 
-Start the SDK as early as possible:
+Start the SDK as early as possible with `startFlocon`, and `install` the plugins you use, with their options
+(like `startFlocon { install(...) }` of the Android SDK):
 
 ```dart
 import 'package:flocon/flocon.dart';
 import 'package:flutter/foundation.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // debug builds only: connects in the background, retries every 3s, keeps what is logged meanwhile
-  if (kDebugMode) Flocon.initialize();
+  if (kDebugMode) await initializeFlocon();
   runApp(const MyApp());
+}
+
+Future<void> initializeFlocon() async {
+  final prefs = await SharedPreferences.getInstance();
+  await startFlocon((flocon) => flocon
+    ..connect(host: Platform.isAndroid ? '10.0.2.2' : 'localhost')
+    ..install(FloconNetwork(isImage: (request, _) => request.url.host == 'images.example.com'))
+    ..install(FloconFiles())
+    ..install(FloconDatabase())
+    ..install(FloconCrashReporter())
+    ..install(FloconSharedPreferences(prefs)));
 }
 ```
 
-Calling `initialize` more than once has no effect, and every Flocon call is a no-op before it.
+| Plugin | Package | Section |
+| --- | --- | --- |
+| `FloconNetwork` | `flocon` | [Network](#network) |
+| `FloconFiles` | `flocon_files` | [Files](#files) |
+| `FloconDatabase` | `flocon_database` | [Databases](#databases) |
+| `FloconCrashReporter` | `flocon_crash_reporter` | [Crash reporter](#crash-reporter) |
+| `FloconSharedPreferences` | `flocon_shared_preferences` | [Preferences](#preferences) |
+
+The plugins of the `flocon` package (network, analytics, tables, timeline, feature flags, deeplinks, dashboard) are always
+available: install `FloconNetwork` only to give it options. Calling `startFlocon` more than once has no effect, and every
+Flocon call is a no-op before it.
 
 ### Debug builds only
 
@@ -102,9 +124,8 @@ Flocon is a debugging tool: **do not start it in release builds**. Once connecte
 network calls, edit your preferences, delete files and run SQL on your databases, and the connection accepts the
 self-signed certificate of the desktop without verifying it.
 
-The `kDebugMode` check of `initialize` above is the only guard you need: every other Flocon call (`floconAnalytics`,
-`floconTimeline`, `FloconDioInterceptor`, `floconEnableFilesPlugin`...) does nothing when `initialize` was not called, so
-you can leave them in your code.
+The `kDebugMode` check above is the only guard you need: every other Flocon call (`floconAnalytics`, `floconTimeline`,
+`withFlocon()`...) does nothing when Flocon was not started, so you can leave them in your code.
 `kDebugMode` is a constant, so the call is removed from release builds by the compiler. Use `!kReleaseMode` instead to also
 keep it in profile builds.
 
@@ -119,9 +140,9 @@ import 'package:flocon/flocon.dart';
 import 'package:flutter/widgets.dart';
 import 'main.dart' as app;
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  Flocon.initialize();
+  await startFlocon((flocon) => flocon..install(FloconNetwork()));
   app.main();
 }
 ```
@@ -140,7 +161,7 @@ flutter build apk                    # release, from lib/main.dart, without Floc
 | Physical device | the local IP address of the computer running Flocon |
 
 ```dart
-Flocon.initialize(config: FloconConfig(host: '192.168.1.20'));
+await startFlocon((flocon) => flocon..connect(host: '192.168.1.20'));
 ```
 
 ### Custom ports
@@ -149,12 +170,12 @@ The SDK uses the ports `9023` (WebSocket) and `9024` (HTTP) of the desktop app. 
 settings, give the same values (a port outside 1...65535 is replaced by the default one):
 
 ```dart
-Flocon.initialize(config: FloconConfig(host: '192.168.1.20', webSocketPort: 9100, httpPort: 9101));
+await startFlocon((flocon) => flocon..connect(host: '192.168.1.20', webSocketPort: 9100, httpPort: 9101));
 ```
 
 ### Connecting to another address
 
-By default the SDK tries `config.host` and keeps retrying every 3 seconds. If the address of the computer is not known when
+By default the SDK tries the host given to `connect` and keeps retrying every 3 seconds. If the address of the computer is not known when
 the app starts (the user types it in, scans a QR code...), call `Flocon.connect` when you have it. The SDK keeps trying
 `localhost` and also connects to this address:
 
@@ -203,7 +224,7 @@ The SDK prints nothing by default. To see what it does, for example when the app
 
 ```dart
 Flocon.isLoggingEnabled = true;
-Flocon.initialize();
+await startFlocon((flocon) => flocon..install(FloconNetwork()));
 ```
 
 ### Platform setup
@@ -225,17 +246,18 @@ See `sample/` for a working configuration of the three platforms.
 `import 'package:flocon_dio/flocon_dio.dart';`
 
 ```dart
-final dio = Dio()..interceptors.add(FloconDioInterceptor());
+final dio = Dio(BaseOptions(baseUrl: baseUrl)).withFlocon();
 ```
 
-Add it last, so it sees the final request and the raw response.
+`withFlocon()` adds the `FloconDioInterceptor`: call it after adding your own interceptors, so it sees the final request
+and the raw response.
 
 ### package:http
 
 `import 'package:flocon_http/flocon_http.dart';`
 
 ```dart
-final client = FloconHttpClient(http.Client());
+final client = http.Client().withFlocon(); // a FloconHttpClient wrapping it
 final response = await client.get(Uri.parse('https://example.com'));
 ```
 
@@ -243,26 +265,20 @@ The response body is read in full to be logged, then returned unchanged: avoid i
 
 ### Options
 
-Both accept the same options, to choose which requests are sent and which responses are images
-(their body is not sent, the desktop downloads them from their URL). Responses with a
+The options of `FloconNetwork`, given at start, apply to the calls of every client (Dio and `package:http`): which calls are
+sent, and which responses are images (their body is not sent, the desktop downloads them from their URL). Responses with a
 `Content-Type: image/*` header are always treated as images.
 
 ```dart
-// Dio
-FloconDioInterceptor(
-  networkOptions: FloconNetworkOptions(
-    shouldLog: (request) => request.uri.host != 'analytics.example.com',
-    isImage: (request, response) => request.uri.path.startsWith('/images/'),
-  ),
-);
-
-// package:http
-FloconHttpClient(
-  http.Client(),
-  shouldLog: (request) => request.url.host != 'analytics.example.com',
-  isImage: (request, response) => request.url.path.startsWith('/images/'),
-);
+await startFlocon((flocon) => flocon
+  ..install(FloconNetwork(
+    shouldLog: (request) => request.url.host != 'analytics.example.com',
+    isImage: (request, response) => request.url.path.startsWith('/images/'),
+  )));
 ```
+
+`request` is a `FloconHttpRequest` (`url`, `method`, `headers`) and `response` a `FloconHttpResponse` (`statusCode`,
+`headers`, `contentType`), whatever the HTTP library.
 
 ### Mocks and bad network
 
@@ -379,8 +395,7 @@ A variable is shared by several deeplinks, and edited once in the desktop app.
 `import 'package:flocon_database/flocon_database.dart';`
 
 ```dart
-Flocon.initialize();
-await floconEnableDatabasePlugin();
+await startFlocon((flocon) => flocon..install(FloconDatabase()));
 ```
 
 The SQLite files of the databases folder (`sqflite`), the documents folder (Android, iOS, macOS sandbox) and the application
@@ -460,21 +475,21 @@ floconTable('users').log([
 
 ```dart
 final prefs = await SharedPreferences.getInstance();
-floconRegisterSharedPreferences(prefs); // optional second argument: the name of the store in the desktop
+await startFlocon((flocon) => flocon..install(FloconSharedPreferences(prefs))); // optional name: the store in the desktop
 ```
 
 The desktop lists the keys with their typed values and lets you edit `String`, `bool`, `int`, `double`
 and `List<String>` values; an edit is only applied when its type matches the stored one. Any key can be deleted from the
 desktop (right-click on a row, then Delete). The store is shown with its type (`SharedPreferences`).
-Call it after `Flocon.initialize()` (it does nothing before). Register several instances with different names.
+Install it several times with different names, or register other instances later with
+`floconRegisterSharedPreferences(prefs, name: 'Other')`.
 
 ## Files
 
 `import 'package:flocon_files/flocon_files.dart';`
 
 ```dart
-Flocon.initialize();
-await floconEnableFilesPlugin();
+await startFlocon((flocon) => flocon..install(FloconFiles()));
 ```
 
 The desktop shows, without anything to register, the `Documents`, `Application Support`, `Caches` and `tmp` folders and,
@@ -497,8 +512,7 @@ floconRegisterFilesFolder('Exports', Directory('${docs.path}/exports'));
 `import 'package:flocon_crash_reporter/flocon_crash_reporter.dart';`
 
 ```dart
-Flocon.initialize();
-await floconEnableCrashReporter();
+await startFlocon((flocon) => flocon..install(FloconCrashReporter()));
 ```
 
 It hooks `FlutterError.onError` (build, layout, gestures...) and `PlatformDispatcher.instance.onError`
@@ -520,7 +534,19 @@ class MyPlugin implements FloconPlugin {
   void onMessageReceived(FloconMessageFromServer message) {}
 }
 
-Flocon.register(MyPlugin()); // after Flocon.initialize()
+Flocon.register(MyPlugin()); // after startFlocon
+```
+
+To install it with `startFlocon` like the others, give it a factory:
+
+```dart
+class MyPluginFactory extends FloconPluginFactory {
+  const MyPluginFactory();
+  @override
+  Future<void> install() async => Flocon.register(MyPlugin());
+}
+
+await startFlocon((flocon) => flocon..install(const MyPluginFactory()));
 ```
 
 To send messages, get the sender with `Flocon.messageSender`; find a registered plugin with `Flocon.plugin<T>()`.
@@ -567,8 +593,8 @@ packages/
   flocon/                       # core
     lib/src/                    #   flocon.dart, config.dart, client/ (WebSocket, queue, envelope),
                                 #   core/, model/, plugins/network|analytics|table
-  flocon_dio/                   # Dio interceptor + FloconNetworkOptions
-  flocon_http/                  # package:http client wrapper
+  flocon_dio/                   # Dio interceptor, Dio.withFlocon()
+  flocon_http/                  # package:http client wrapper, Client.withFlocon()
   flocon_shared_preferences/    # Preferences plugin
   flocon_files/                 # Files plugin
   flocon_crash_reporter/        # Crash reporter plugin

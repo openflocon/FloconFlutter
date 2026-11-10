@@ -23,8 +23,8 @@ dependencies:
 ```dart
 import 'package:flocon_shared_preferences/flocon_shared_preferences.dart';
 
-Flocon.initialize();
-floconRegisterSharedPreferences(await SharedPreferences.getInstance());
+final prefs = await SharedPreferences.getInstance();
+await startFlocon((flocon) => flocon..install(FloconSharedPreferences(prefs)));
 ```
 
 See the [full documentation](https://github.com/openflocon/FloconFlutter#readme) and the [`example`](example/main.dart).

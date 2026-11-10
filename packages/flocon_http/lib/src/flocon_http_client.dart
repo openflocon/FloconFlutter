@@ -6,35 +6,35 @@ import 'package:uuid/uuid.dart';
 
 import 'package:flocon/flocon.dart';
 
-/// `package:http` client wrapper that sends every call to the Flocon desktop app.
+/// Sends the calls of a `package:http` client to the Flocon desktop app.
+extension FloconHttp on http.Client {
+  /// Wraps this client in a [FloconHttpClient]:
+  ///
+  /// ```dart
+  /// final client = http.Client().withFlocon();
+  /// final response = await client.get(Uri.parse('https://example.com'));
+  /// ```
+  ///
+  /// The options (`shouldLog`, `isImage`) are those of `FloconNetwork`, installed with `startFlocon`.
+  FloconHttpClient withFlocon() => FloconHttpClient(this);
+}
+
+/// `package:http` client wrapper that sends every call to the Flocon desktop app. Create it with
+/// [FloconHttp.withFlocon].
 ///
-/// ```dart
-/// final client = FloconHttpClient(http.Client());
-/// final response = await client.get(Uri.parse('https://example.com'));
-/// ```
+/// The calls go through untouched when Flocon is not started.
 class FloconHttpClient extends http.BaseClient {
-  FloconHttpClient(
-    this._inner, {
-    this.shouldLog,
-    this.isImage,
-    FloconNetworkPlugin? plugin,
-  }) : _plugin = plugin;
+  FloconHttpClient(this._inner, {FloconNetworkPlugin? plugin}) : _plugin = plugin;
 
   final http.Client _inner;
   final FloconNetworkPlugin? _plugin;
-
-  /// Returns whether a request is sent to the desktop app. All requests by default.
-  final bool Function(http.BaseRequest request)? shouldLog;
-
-  /// Returns whether a response is an image, in addition to the `Content-Type: image/*` check.
-  final bool Function(http.BaseRequest request, http.BaseResponse response)? isImage;
 
   FloconNetworkPlugin? get _network => _plugin ?? Flocon.networkPlugin;
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     final plugin = _network;
-    if (plugin == null || !(shouldLog?.call(request) ?? true)) {
+    if (plugin == null || !plugin.shouldLog(_request(request))) {
       return _inner.send(request);
     }
 
@@ -114,8 +114,10 @@ class FloconHttpClient extends http.BaseClient {
     final bytes = await streamed.stream.toBytes();
     _safe(() {
       final contentType = streamed.headers['content-type'];
-      final image = (contentType?.toLowerCase().startsWith('image/') ?? false) ||
-          (isImage?.call(request, streamed) ?? false);
+      final image = plugin.isImage(
+        _request(request),
+        FloconHttpResponse(statusCode: streamed.statusCode, headers: streamed.headers),
+      );
       plugin.logResponse(
         callId: callId,
         durationMs: stopwatch.elapsedMicroseconds / 1000,
@@ -143,6 +145,9 @@ class FloconHttpClient extends http.BaseClient {
 
   @override
   void close() => _inner.close();
+
+  static FloconHttpRequest _request(http.BaseRequest request) =>
+      FloconHttpRequest(url: request.url, method: request.method, headers: request.headers);
 
   static void _safe(void Function() f) {
     try {

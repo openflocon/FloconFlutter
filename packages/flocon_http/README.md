@@ -23,8 +23,15 @@ dependencies:
 ```dart
 import 'package:flocon_http/flocon_http.dart';
 
-final client = FloconHttpClient(http.Client());
+final client = http.Client().withFlocon();
 final response = await client.get(Uri.parse('https://example.com'));
+```
+
+The options (which calls are sent, which responses are images) are given once, to the network plugin:
+
+```dart
+await startFlocon((flocon) => flocon
+  ..install(FloconNetwork(isImage: (request, _) => request.url.host == 'images.example.com')));
 ```
 
 See the [full documentation](https://github.com/openflocon/FloconFlutter#readme) and the [`example`](example/main.dart).

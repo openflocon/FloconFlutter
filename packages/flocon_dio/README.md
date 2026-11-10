@@ -23,7 +23,14 @@ dependencies:
 ```dart
 import 'package:flocon_dio/flocon_dio.dart';
 
-final dio = Dio()..interceptors.add(FloconDioInterceptor()); // add it last
+final dio = Dio(BaseOptions(baseUrl: baseUrl)).withFlocon(); // after your own interceptors
+```
+
+The options (which calls are sent, which responses are images) are given once, to the network plugin:
+
+```dart
+await startFlocon((flocon) => flocon
+  ..install(FloconNetwork(isImage: (request, _) => request.url.host == 'images.example.com')));
 ```
 
 See the [full documentation](https://github.com/openflocon/FloconFlutter#readme) and the [`example`](example/main.dart).

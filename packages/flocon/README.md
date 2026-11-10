@@ -19,9 +19,13 @@ dependencies:
 ```dart
 import 'package:flocon/flocon.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  if (kDebugMode) Flocon.initialize(); // localhost by default, 10.0.2.2 on the Android emulator
+  if (kDebugMode) {
+    await startFlocon((flocon) => flocon
+      ..connect(host: 'localhost') // 10.0.2.2 from the Android emulator
+      ..install(FloconNetwork(isImage: (request, _) => request.url.host == 'images.example.com')));
+  }
   runApp(const MyApp());
 }
 

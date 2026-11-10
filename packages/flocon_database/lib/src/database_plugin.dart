@@ -36,7 +36,7 @@ class FloconDatabasePlugin implements FloconPlugin {
   final DateTime Function() _now;
 
   // by path, so that registering a file again replaces it
-  final _registered = <String, FloconDatabase>{};
+  final _registered = <String, FloconDatabaseFile>{};
 
   // Queries can be slow: they run in order.
   Future<void> _queue = Future.value();
@@ -45,7 +45,7 @@ class FloconDatabasePlugin implements FloconPlugin {
   String get pluginName => name;
 
   /// Lists a database, or renames one already listed.
-  void register(FloconDatabase database) {
+  void register(FloconDatabaseFile database) {
     _registered[database.id] = database;
     unawaited(_enqueue(_sendDatabases));
   }
@@ -103,7 +103,7 @@ class FloconDatabasePlugin implements FloconPlugin {
 
   /// The discovered databases, a registered one taking the place (and the name) of the one at the same path,
   /// then the registered ones elsewhere, if their file exists.
-  Future<List<FloconDatabase>> databases() async {
+  Future<List<FloconDatabaseFile>> databases() async {
     final found = await _discovery.databases();
     final foundIds = {for (final d in found) d.id};
     return [
@@ -125,7 +125,7 @@ class FloconDatabasePlugin implements FloconPlugin {
 
   Future<void> _runQuery(Map<String, dynamic> request) async {
     final query = request['query'] as String;
-    final id = FloconDatabase.idOf(request['database'] as String);
+    final id = FloconDatabaseFile.idOf(request['database'] as String);
     final known = (await databases()).any((d) => d.id == id);
     final FloconDatabaseResult result = known
         ? await _executor.execute(id, query)

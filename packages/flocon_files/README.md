@@ -23,8 +23,8 @@ dependencies:
 ```dart
 import 'package:flocon_files/flocon_files.dart';
 
-Flocon.initialize();
-await floconEnableFilesPlugin(); // Documents, Application Support, Caches, tmp and the app container
+// Documents, Application Support, Caches, tmp and the app container
+await startFlocon((flocon) => flocon..install(FloconFiles()));
 floconRegisterFilesFolder('Exports', Directory('${docs.path}/exports'));
 ```
 

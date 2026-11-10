@@ -5,8 +5,6 @@ import 'package:flutter/widgets.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  if (kDebugMode) Flocon.initialize();
-
-  // Hooks FlutterError.onError and PlatformDispatcher.instance.onError; call it after Flocon.initialize().
-  await floconEnableCrashReporter();
+  // hooks FlutterError.onError and PlatformDispatcher.instance.onError
+  if (kDebugMode) await startFlocon((flocon) => flocon..install(const FloconCrashReporter()));
 }

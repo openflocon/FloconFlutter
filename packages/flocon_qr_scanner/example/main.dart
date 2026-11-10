@@ -3,9 +3,9 @@ import 'package:flocon_qr_scanner/flocon_qr_scanner.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  if (kDebugMode) Flocon.initialize();
+  if (kDebugMode) await startFlocon((flocon) => flocon..install(const FloconNetwork()));
   runApp(MaterialApp(
     home: Scaffold(
       body: FloconQrScannerView(
