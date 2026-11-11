@@ -13,7 +13,7 @@ Sends the app icon to the Flocon desktop app.
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'Flocon' => 'noreply@example.com' }
   s.source           = { :path => '.' }
-  s.source_files = 'Classes/**/*'
+  s.source_files = 'flocon/Sources/flocon/**/*.swift'
   s.dependency 'Flutter'
   s.platform = :ios, '12.0'
 
@@ -25,5 +25,5 @@ Sends the app icon to the Flocon desktop app.
   # required reason APIs, update the PrivacyInfo.xcprivacy file to describe your
   # plugin's privacy impact, and then uncomment this line. For more information,
   # see https://developer.apple.com/documentation/bundleresources/privacy_manifest_files
-  # s.resource_bundles = {'flocon_privacy' => ['Resources/PrivacyInfo.xcprivacy']}
+  s.resource_bundles = {'flocon_privacy' => ['flocon/Sources/flocon/Resources/PrivacyInfo.xcprivacy']}
 end
