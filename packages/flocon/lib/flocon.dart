@@ -9,6 +9,7 @@ export 'src/client/file_uploader.dart'
 export 'src/core/logger.dart' show FloconLogger;
 export 'src/core/plugin.dart';
 export 'src/flocon.dart';
+export 'src/platform_registration.dart' show FloconDartPlugin;
 export 'src/start.dart';
 export 'src/model/message_from_server.dart';
 export 'src/plugins/analytics/analytics_plugin.dart';

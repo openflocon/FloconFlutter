@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'io_types.dart';
 
 import '../model/message_from_server.dart';
 
