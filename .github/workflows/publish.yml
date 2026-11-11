@@ -53,13 +53,25 @@ jobs:
           # Recent Flutter versions rewrite analysis_options.yaml during analyze:
           # drop it so the packages are published from a clean git state
           git restore .
-          # Only flocon can be dry-run: the plugins need it to be on pub.dev first
-          (cd packages/flocon && flutter pub publish --dry-run)
+          # Only flocon can be dry-run: the plugins need it to be on pub.dev first.
+          # Skipped when flocon is already published (re-run after a partial failure).
+          version="${GITHUB_REF_NAME#flocon-v}"
+          if curl -sf -o /dev/null "https://pub.dev/api/packages/flocon/versions/${version}"; then
+            echo "flocon ${version} is already published, no dry run"
+          else
+            (cd packages/flocon && flutter pub publish --dry-run)
+          fi
 
       - name: Publish to pub.dev
         run: |
+          version="${GITHUB_REF_NAME#flocon-v}"
           for package in $PACKAGES; do
             echo "== $package"
+            # Re-run after a partial failure: skip what is already on pub.dev
+            if curl -sf -o /dev/null "https://pub.dev/api/packages/${package}/versions/${version}"; then
+              echo "${package} ${version} is already published, skipping"
+              continue
+            fi
             # Short-lived OIDC token, one per package
             PUB_TOKEN=$(curl --retry 5 --retry-connrefused -sLS \
               "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=https://pub.dev" \
