@@ -14,14 +14,14 @@ false_secrets:
   - /test/fixtures/test_key.pem
 
 environment:
-  sdk: ^3.8.1
-  flutter: ">=3.32.0"
+  sdk: ^3.10.0
+  flutter: ">=3.38.1"
 
 dependencies:
   flutter:
     sdk: flutter
-  device_info_plus: ^12.4.0
-  package_info_plus: ^9.0.1
+  device_info_plus: ^13.3.0
+  package_info_plus: ^10.2.2
   uuid: ^4.6.0
   path_provider: ^2.1.5
 
