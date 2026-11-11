@@ -40,4 +40,8 @@ flutter:
         pluginClass: FloconNativePlugin
       macos:
         pluginClass: FloconNativePlugin
+      linux:
+        dartPluginClass: FloconDartPlugin
+      windows:
+        dartPluginClass: FloconDartPlugin
 

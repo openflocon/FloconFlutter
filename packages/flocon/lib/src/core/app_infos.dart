@@ -1,6 +1,5 @@
-import 'dart:io' show Platform;
-
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:uuid/uuid.dart';
 
@@ -24,20 +23,31 @@ class FloconAppInfos {
     final package = await PackageInfo.fromPlatform();
     final plugin = DeviceInfoPlugin();
     var deviceId = const Uuid().v4();
-    var deviceName = Platform.operatingSystem;
+    var deviceName = defaultTargetPlatform.name.toLowerCase();
     try {
-      if (Platform.isIOS) {
-        final info = await plugin.iosInfo;
-        deviceId = info.identifierForVendor ?? deviceId;
-        deviceName = info.name;
-      } else if (Platform.isAndroid) {
-        final info = await plugin.androidInfo;
-        deviceId = info.id;
-        deviceName = '${info.manufacturer} ${info.model}';
-      } else if (Platform.isMacOS) {
-        final info = await plugin.macOsInfo;
-        deviceId = info.systemGUID ?? deviceId;
-        deviceName = info.computerName;
+      switch (defaultTargetPlatform) {
+        case TargetPlatform.iOS:
+          final info = await plugin.iosInfo;
+          deviceId = info.identifierForVendor ?? deviceId;
+          deviceName = info.name;
+        case TargetPlatform.android:
+          final info = await plugin.androidInfo;
+          deviceId = info.id;
+          deviceName = '${info.manufacturer} ${info.model}';
+        case TargetPlatform.macOS:
+          final info = await plugin.macOsInfo;
+          deviceId = info.systemGUID ?? deviceId;
+          deviceName = info.computerName;
+        case TargetPlatform.windows:
+          final info = await plugin.windowsInfo;
+          deviceId = info.deviceId;
+          deviceName = info.computerName;
+        case TargetPlatform.linux:
+          final info = await plugin.linuxInfo;
+          deviceId = info.machineId ?? deviceId;
+          deviceName = info.prettyName;
+        case TargetPlatform.fuchsia:
+          break;
       }
     } catch (_) {
       // keep the fallbacks
@@ -45,11 +55,7 @@ class FloconAppInfos {
     return FloconAppInfos(
       deviceId: deviceId,
       deviceName: deviceName,
-      platform: Platform.isIOS
-          ? 'ios'
-          : Platform.isAndroid
-          ? 'android'
-          : Platform.operatingSystem,
+      platform: defaultTargetPlatform.name.toLowerCase(),
       appName: package.appName.isEmpty ? 'unknown' : package.appName,
       appPackageName: package.packageName.isEmpty
           ? 'unknown'
