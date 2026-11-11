@@ -1,3 +1,6 @@
+## 2.0.0
+- Version aligned with Flocon desktop 2.x.
+
 ## Unreleased
 - Bump `device_info_plus` to ^13.3.0 and `package_info_plus` to ^10.2.2.
 - Minimum SDK raised to Dart 3.10 / Flutter 3.38.1 (required by those dependencies).
