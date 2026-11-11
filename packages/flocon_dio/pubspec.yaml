@@ -8,7 +8,7 @@ topics:
   - network
   - dio
   - flocon
-version: 0.0.1
+version: 0.0.2
 
 environment:
   sdk: ^3.8.1
@@ -17,7 +17,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flocon: ^0.0.1
+  flocon: ^0.0.2
   dio: ^5.11.1
   uuid: ^4.6.0
 
