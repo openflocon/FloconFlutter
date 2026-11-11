@@ -9,7 +9,10 @@ Packages (publish order matters, everything depends on `flocon`):
 
 ## 1. pub.dev account and ownership (manual, one time)
 
-- [ ] Create or choose a [verified publisher](https://pub.dev/create-publisher) for the `openflocon` organization (verified domain), so that the packages are owned by it and not by a person.
+- [ ] Decide who owns the packages. A [verified publisher](https://pub.dev/create-publisher) is named after a domain you control (checked with Google Search Console, a `github.io` subdomain does not work), and there is no Flocon site for now. So:
+  - to start: publish with a personal Google account, no publisher needed (automated publishing does not need one either);
+  - then invite a second account as uploader on each package (Admin tab > Uploaders), so that the packages do not depend on one person;
+  - optional, later: buy a domain (no website needed), create the publisher, and transfer the packages to it (Admin tab > Publisher). Transferring to a publisher is possible after publication, the other way round is not.
 - [ ] Check that the names are free on pub.dev: `flocon`, `flocon_dio`, `flocon_http`, `flocon_shared_preferences`, `flocon_files`, `flocon_crash_reporter`, `flocon_database`, `flocon_qr_scanner`. Rename now if one is taken (renaming after publication is impossible).
 - [ ] Decide on the versioning: all packages share the same version number, or each one has its own. Recommended: independent versions, `flocon_*` plugins constrain `flocon: ^x.y.z`.
 
