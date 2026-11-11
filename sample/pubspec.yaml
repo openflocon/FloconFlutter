@@ -108,3 +108,8 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+# The plugins depend on the published flocon, use the local one instead.
+dependency_overrides:
+  flocon:
+    path: ../packages/flocon
