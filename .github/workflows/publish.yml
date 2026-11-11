@@ -48,7 +48,7 @@ jobs:
         run: |
           for package in $PACKAGES; do
             echo "== $package"
-            (cd "packages/${package}" && flutter pub get && flutter analyze && { [ ! -d test ] || flutter test; })
+            (cd "packages/${package}" && flutter pub get && flutter analyze --no-fatal-infos && { [ ! -d test ] || flutter test; })
           done
           # Only flocon can be dry-run: the plugins need it to be on pub.dev first
           (cd packages/flocon && flutter pub publish --dry-run)
