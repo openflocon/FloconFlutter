@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import '../core/io_types.dart';
+import 'dart:io' show File;
 
 import '../config.dart';
 import '../core/app_icon.dart';

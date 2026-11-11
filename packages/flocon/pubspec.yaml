@@ -20,9 +20,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_web_plugins:
-    sdk: flutter
-  web_socket_channel: ^3.0.3
   device_info_plus: ^13.3.0
   package_info_plus: ^10.2.2
   uuid: ^4.6.0
@@ -47,7 +44,4 @@ flutter:
         dartPluginClass: FloconDartPlugin
       windows:
         dartPluginClass: FloconDartPlugin
-      web:
-        pluginClass: FloconWebPlugin
-        fileName: flocon_web.dart
 

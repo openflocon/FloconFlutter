@@ -1,10 +1,8 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
-import '../core/io_types.dart';
 import '../core/logger.dart';
-import 'multipart_post_io.dart'
-    if (dart.library.js_interop) 'multipart_post_web.dart';
 
 /// Fields that identify the app, sent with every uploaded file.
 class FloconUploadIdentity {
@@ -34,13 +32,22 @@ class FloconFileUploader {
     required String requestId,
     required FloconUploadIdentity identity,
   }) async {
+    final client = HttpClient()..badCertificateCallback = (_, __, ___) => true;
     try {
       final boundary =
           'Flocon-${Random().nextInt(1 << 32)}-${DateTime.now().microsecondsSinceEpoch}';
-      final status = await postMultipart(
-        uploadUri,
-        boundary: boundary,
-        head: utf8.encode(
+      final request = await client
+          .postUrl(uploadUri)
+          .timeout(const Duration(seconds: 10));
+      request.headers
+        ..set(HttpHeaders.userAgentHeader, 'Flocon')
+        ..set(
+          HttpHeaders.contentTypeHeader,
+          'multipart/form-data; boundary=$boundary',
+        );
+
+      request.add(
+        utf8.encode(
           multipartHead(
             boundary,
             fields: {
@@ -53,14 +60,21 @@ class FloconFileUploader {
             fileName: file.uri.pathSegments.last,
           ),
         ),
-        file: file,
-        tail: utf8.encode(multipartTail(boundary)),
       );
-      if (status < 200 || status >= 300) {
-        FloconLogger.log('Upload of $remotePath failed: HTTP $status');
+      await request.addStream(file.openRead());
+      request.add(utf8.encode(multipartTail(boundary)));
+
+      final response = await request.close();
+      await response.drain<void>();
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        FloconLogger.log(
+          'Upload of $remotePath failed: HTTP ${response.statusCode}',
+        );
       }
     } catch (e) {
       FloconLogger.logError('Upload of $remotePath failed', e);
+    } finally {
+      client.close(force: true);
     }
   }
 

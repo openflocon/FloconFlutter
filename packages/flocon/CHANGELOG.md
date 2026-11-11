@@ -1,5 +1,5 @@
 ## Unreleased
-- Declare Linux, Windows and Web support. Linux and Windows run the same Dart code as the other desktops. On the web the SDK uses the browser WebSocket (the connection only succeeds if the browser trusts the self-signed certificate of the desktop); there is no file system (no persisted mocks or last address, no file uploads).
+- Declare Linux and Windows support. They run the same Dart code as the other desktops; only the app icon is not sent (no native side).
 - Bump `device_info_plus` to ^13.3.0 and `package_info_plus` to ^10.2.2.
 - Minimum SDK raised to Dart 3.10 / Flutter 3.38.1 (required by those dependencies).
 
