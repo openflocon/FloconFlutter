@@ -50,6 +50,9 @@ jobs:
             echo "== $package"
             (cd "packages/${package}" && flutter pub get && flutter analyze --no-fatal-infos && { [ ! -d test ] || flutter test; })
           done
+          # Recent Flutter versions rewrite analysis_options.yaml during analyze:
+          # drop it so the packages are published from a clean git state
+          git restore .
           # Only flocon can be dry-run: the plugins need it to be on pub.dev first
           (cd packages/flocon && flutter pub publish --dry-run)
 
