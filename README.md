@@ -8,7 +8,7 @@ started, your app connects to the Flocon desktop app and shows, live: network ca
 analytics, feature flags, timeline, crashes and more. Also available for Kotlin and Swift
 ([FloconSwift](https://github.com/openflocon/FloconSwift)).
 
-<!-- screenshot: hero -->
+![Flocon Desktop showing the Timeline of an app](https://raw.githubusercontent.com/openflocon/Flocon/main/docs/assets/screenshots/home-timeline-graph.jpg)
 
 Full documentation: **https://openflocon.github.io/Flocon/** (every feature page has a Flutter tab).
 
