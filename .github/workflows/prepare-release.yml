@@ -1,0 +1,56 @@
+name: Prepare release
+
+# Actions > Prepare release > Run workflow (from main), with the version: 0.1.0
+# Bumps the 8 packages, updates their CHANGELOG.md, commits on main, pushes the tag
+# flocon-v<version>, then starts 'Release and publish' on that tag.
+# (A tag pushed with GITHUB_TOKEN does not trigger workflows, workflow_dispatch does.)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "SemVer version, without 'v' (e.g. 0.1.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  actions: write # start publish.yml
+
+concurrency: release
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ inputs.version }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate version
+        run: |
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]] || { echo "::error::Invalid version: $VERSION"; exit 1; }
+          [[ "${{ github.ref_name }}" == "main" ]] || { echo "::error::Run from main"; exit 1; }
+          ! git rev-parse -q --verify "refs/tags/flocon-v$VERSION" || { echo "::error::Tag flocon-v$VERSION already exists"; exit 1; }
+
+      - name: Generate notes from merged PRs (used when CHANGELOG has no Unreleased section)
+        run: |
+          previous="$(git tag --list 'flocon-v*' --sort=-v:refname | head -1)"
+          gh api "repos/${{ github.repository }}/releases/generate-notes" \
+            -f tag_name="flocon-v$VERSION" -f target_commitish=main -f previous_tag_name="$previous" \
+            --jq .body | grep '^\* ' | sed -E 's/^\* /- /; s/ by @[^ ]+ in / (/; s/$/)/' > "$RUNNER_TEMP/notes.md" || true
+
+      - name: Bump packages and changelogs
+        run: .github/scripts/prepare_release.sh "$VERSION" "$RUNNER_TEMP/notes.md"
+
+      - name: Commit, tag, start publish
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "Release flocon v$VERSION"
+          git tag "flocon-v$VERSION"
+          git push origin HEAD:main "flocon-v$VERSION"
+          gh workflow run publish.yml --ref "flocon-v$VERSION"

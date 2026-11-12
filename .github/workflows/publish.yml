@@ -1,6 +1,7 @@
 name: Release and publish
 
-# Push a tag flocon-v<version> (e.g. flocon-v0.0.1) to:
+# Push a tag flocon-v<version> (e.g. flocon-v0.0.1), or run this workflow on such a
+# tag (that is what 'Prepare release' does), to:
 #  1. publish flocon, then every plugin, on pub.dev (GitHub OIDC, no secret),
 #  2. create the GitHub release, its notes being the '## <version>' section of
 #     packages/flocon/CHANGELOG.md.
@@ -11,6 +12,7 @@ on:
   push:
     tags:
       - "flocon-v[0-9]+.[0-9]+.[0-9]+*"
+  workflow_dispatch: # must be run on a flocon-v* tag, not on a branch
 
 env:
   # flocon first, the plugins depend on it
@@ -30,6 +32,7 @@ jobs:
 
       - name: Check versions and changelogs
         run: |
+          [ "$GITHUB_REF_TYPE" = tag ] || { echo "Run this workflow on a flocon-v<version> tag"; exit 1; }
           version="${GITHUB_REF_NAME#flocon-v}"
           for package in $PACKAGES; do
             dir="packages/${package}"
