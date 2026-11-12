@@ -1,3 +1,6 @@
+## 2.0.1
+- Align plugin helpers with FloconAndroid: Flocon.database, preferences, files, network (https://github.com/openflocon/FloconFlutter/pull/14)
+
 ## 2.0.0
 - No user-facing change.
 
