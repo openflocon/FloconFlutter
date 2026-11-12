@@ -4,18 +4,16 @@ Browse, download and delete the files of your app from the [Flocon](https://gith
 
 ## Installation
 
-There is no release on pub.dev yet, depend on the repository:
+```bash
+flutter pub add flocon flocon_files
+```
+
+or in `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flocon:
-    git:
-      url: https://github.com/openflocon/FloconFlutter.git
-      path: packages/flocon
-  flocon_files:
-    git:
-      url: https://github.com/openflocon/FloconFlutter.git
-      path: packages/flocon_files
+  flocon: ^2.0.0
+  flocon_files: ^2.0.0
 ```
 
 ## Usage
@@ -30,7 +28,7 @@ Flocon.files.register('Exports', Directory('${docs.path}/exports'));
 
 Nothing outside of the root folders is reachable.
 
-See the [full documentation](https://github.com/openflocon/FloconFlutter#readme) and the [`example`](example/main.dart).
+See the [documentation](https://openflocon.github.io/Flocon/files/) and the [`example`](example/main.dart).
 
 ## License
 

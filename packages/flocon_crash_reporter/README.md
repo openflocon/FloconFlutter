@@ -4,18 +4,16 @@ Sends the uncaught Dart and Flutter errors of your app, with their stack trace, 
 
 ## Installation
 
-There is no release on pub.dev yet, depend on the repository:
+```bash
+flutter pub add flocon flocon_crash_reporter
+```
+
+or in `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flocon:
-    git:
-      url: https://github.com/openflocon/FloconFlutter.git
-      path: packages/flocon
-  flocon_crash_reporter:
-    git:
-      url: https://github.com/openflocon/FloconFlutter.git
-      path: packages/flocon_crash_reporter
+  flocon: ^2.0.0
+  flocon_crash_reporter: ^2.0.0
 ```
 
 ## Usage
@@ -28,7 +26,7 @@ await startFlocon((flocon) => flocon..install(FloconCrashReporter()));
 
 Errors are saved on disk and sent on the next connection, even after a restart. Native crashes are not reported.
 
-See the [full documentation](https://github.com/openflocon/FloconFlutter#readme) and the [`example`](example/main.dart).
+See the [documentation](https://openflocon.github.io/Flocon/crashreporter/) and the [`example`](example/main.dart).
 
 ## License
 

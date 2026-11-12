@@ -4,18 +4,16 @@ Browse and edit your [`SharedPreferences`](https://pub.dev/packages/shared_prefe
 
 ## Installation
 
-There is no release on pub.dev yet, depend on the repository:
+```bash
+flutter pub add flocon flocon_shared_preferences
+```
+
+or in `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flocon:
-    git:
-      url: https://github.com/openflocon/FloconFlutter.git
-      path: packages/flocon
-  flocon_shared_preferences:
-    git:
-      url: https://github.com/openflocon/FloconFlutter.git
-      path: packages/flocon_shared_preferences
+  flocon: ^2.0.0
+  flocon_shared_preferences: ^2.0.0
 ```
 
 ## Usage
@@ -27,7 +25,7 @@ final prefs = await SharedPreferences.getInstance();
 await startFlocon((flocon) => flocon..install(FloconSharedPreferences(prefs)));
 ```
 
-See the [full documentation](https://github.com/openflocon/FloconFlutter#readme) and the [`example`](example/main.dart).
+See the [documentation](https://openflocon.github.io/Flocon/sharedpref/) and the [`example`](example/main.dart).
 
 ## License
 
