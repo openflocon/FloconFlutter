@@ -1,3 +1,6 @@
+## 0.0.3
+- Version aligned with flocon 0.0.3.
+
 ## 0.0.2
 - No code change, first release published by the CI.
 

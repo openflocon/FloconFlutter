@@ -8,7 +8,7 @@ topics:
   - network
   - analytics
   - flocon
-version: 0.0.2
+version: 0.0.3
 # Self-signed key of the TLS test server, not a secret.
 false_secrets:
   - /test/fixtures/test_key.pem
