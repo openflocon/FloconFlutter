@@ -1,17 +1,22 @@
 name: flocon_files
 description: Files plugin for Flocon, browse, download and delete the files of your app from the Flocon desktop debugger.
-version: 0.0.1
-publish_to: none
+repository: https://github.com/openflocon/FloconFlutter/tree/main/packages/flocon_files
+issue_tracker: https://github.com/openflocon/FloconFlutter/issues
+topics:
+  - debugging
+  - devtools
+  - files
+  - flocon
+version: 0.0.2
 
 environment:
-  sdk: ^3.8.1
-  flutter: ">=1.17.0"
+  sdk: ^3.10.0
+  flutter: ">=3.38.1"
 
 dependencies:
   flutter:
     sdk: flutter
-  flocon:
-    path: ../flocon
+  flocon: ^0.0.2
   path: ^1.9.0
   path_provider: ^2.1.0
 
@@ -19,3 +24,8 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+
+# Local development only, ignored by pub.dev: use the sibling flocon package.
+dependency_overrides:
+  flocon:
+    path: ../flocon

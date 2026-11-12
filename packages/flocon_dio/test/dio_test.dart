@@ -47,12 +47,9 @@ class FakeAdapter implements HttpClientAdapter {
 void main() {
   late FakeSender sender;
   late FloconNetworkPlugin plugin;
-  Dio build(
-    FakeAdapter adapter, [
-    FloconNetworkOptions o = const FloconNetworkOptions(),
-  ]) => Dio()
+  Dio build(FakeAdapter adapter) => Dio()
     ..httpClientAdapter = adapter
-    ..interceptors.add(FloconDioInterceptor(plugin: plugin, networkOptions: o));
+    ..interceptors.add(FloconDioInterceptor(plugin: plugin));
 
   setUp(() {
     sender = FakeSender();
@@ -100,13 +97,26 @@ void main() {
     expect(res['responseBody'], null);
   });
 
-  test('shouldLog false skips the call', () async {
-    final dio = build(
-      FakeAdapter(200, '{}'),
-      FloconNetworkOptions(shouldLog: (_) => false),
-    );
+  test('isImage of FloconNetwork marks a response without image content type', () async {
+    plugin.options = FloconNetwork(isImage: (request, response) => request.url.path.startsWith('/img/'));
+    final dio = build(FakeAdapter(200, 'bytes', 'application/octet-stream'));
+    await dio.get('https://x.test/img/1');
+    final res = sender.sent[1].body;
+    expect(res['isImage'], true);
+    expect(res['responseBody'], null);
+  });
+
+  test('shouldLog of FloconNetwork false skips the call', () async {
+    plugin.options = FloconNetwork(shouldLog: (request) => request.method != 'GET');
+    final dio = build(FakeAdapter(200, '{}'));
     await dio.get('https://x.test/a');
     expect(sender.sent, isEmpty);
+  });
+
+  test('withFlocon adds the interceptor last', () {
+    final dio = Dio()..interceptors.add(LogInterceptor());
+    expect(dio.withFlocon(), same(dio));
+    expect(dio.interceptors.last, isA<FloconDioInterceptor>());
   });
 
   test('websocket event payload', () {

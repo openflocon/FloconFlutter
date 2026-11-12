@@ -1,0 +1,118 @@
+name: Release and publish
+
+# Push a tag flocon-v<version> (e.g. flocon-v0.0.1) to:
+#  1. publish flocon, then every plugin, on pub.dev (GitHub OIDC, no secret),
+#  2. create the GitHub release, its notes being the '## <version>' section of
+#     packages/flocon/CHANGELOG.md.
+# All packages share the same version. On pub.dev, enable automated publishing
+# for each package (Admin > Automated publishing) with the tag pattern
+# 'flocon-v{{version}}' and the GitHub environment 'pub.dev'.
+on:
+  push:
+    tags:
+      - "flocon-v[0-9]+.[0-9]+.[0-9]+*"
+
+env:
+  # flocon first, the plugins depend on it
+  PACKAGES: >-
+    flocon flocon_crash_reporter flocon_database flocon_dio flocon_files
+    flocon_http flocon_qr_scanner flocon_shared_preferences
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: pub.dev
+    permissions:
+      contents: read
+      id-token: write # OIDC token for pub.dev
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check versions and changelogs
+        run: |
+          version="${GITHUB_REF_NAME#flocon-v}"
+          for package in $PACKAGES; do
+            dir="packages/${package}"
+            actual="$(grep -m1 '^version:' "$dir/pubspec.yaml" | awk '{print $2}')"
+            [ "$actual" = "$version" ] || { echo "$package: pubspec version $actual != tag $version"; exit 1; }
+            grep -q "^## ${version}\$" "$dir/CHANGELOG.md" || { echo "$package: no '## ${version}' in CHANGELOG.md"; exit 1; }
+            grep -q "^  flocon: \^${version%%[-+]*}\$" "$dir/pubspec.yaml" || [ "$package" = flocon ] || { echo "$package: must depend on flocon: ^${version%%[-+]*}"; exit 1; }
+          done
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.38.10
+          channel: stable
+          cache: true
+
+      - name: Analyze, test and dry-run every package
+        run: |
+          for package in $PACKAGES; do
+            echo "== $package"
+            (cd "packages/${package}" && flutter pub get && flutter analyze --no-fatal-infos && { [ ! -d test ] || flutter test; })
+          done
+          # Recent Flutter versions rewrite analysis_options.yaml during analyze:
+          # drop it so the packages are published from a clean git state
+          git restore .
+          # Only flocon can be dry-run: the plugins need it to be on pub.dev first.
+          # Skipped when flocon is already published (re-run after a partial failure).
+          version="${GITHUB_REF_NAME#flocon-v}"
+          if curl -sf -o /dev/null "https://pub.dev/api/packages/flocon/versions/${version}"; then
+            echo "flocon ${version} is already published, no dry run"
+          else
+            (cd packages/flocon && flutter pub publish --dry-run)
+          fi
+
+      - name: Publish to pub.dev
+        run: |
+          version="${GITHUB_REF_NAME#flocon-v}"
+          for package in $PACKAGES; do
+            echo "== $package"
+            # Re-run after a partial failure: skip what is already on pub.dev
+            if curl -sf -o /dev/null "https://pub.dev/api/packages/${package}/versions/${version}"; then
+              echo "${package} ${version} is already published, skipping"
+              continue
+            fi
+            # Short-lived OIDC token, one per package
+            PUB_TOKEN=$(curl --retry 5 --retry-connrefused -sLS \
+              "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=https://pub.dev" \
+              -H "User-Agent: actions/oidc-client" \
+              -H "Authorization: Bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" | jq -r '.value')
+            echo "::add-mask::${PUB_TOKEN}"
+            export PUB_TOKEN
+            flutter pub token add https://pub.dev --env-var PUB_TOKEN
+            # The plugins may need a moment before pub.dev serves the new flocon
+            for attempt in 1 2 3 4 5; do
+              (cd "packages/${package}" && flutter pub publish --force) && break
+              [ "$attempt" = 5 ] && exit 1
+              sleep 30
+            done
+          done
+
+  release:
+    # Only once every package is live on pub.dev
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # create the release
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract release notes from CHANGELOG.md
+        run: |
+          version="${GITHUB_REF_NAME#flocon-v}"
+          # Body of the '## <version>' section, up to the next '## ' heading
+          awk -v v="$version" '
+            $0 == "## " v { found = 1; next }
+            found && /^## / { exit }
+            found { print }
+          ' packages/flocon/CHANGELOG.md > notes.md
+          echo "https://pub.dev/packages/flocon/versions/${version}" >> notes.md
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            --title "${GITHUB_REF_NAME}" \
+            --notes-file notes.md

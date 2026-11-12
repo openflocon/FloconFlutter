@@ -8,7 +8,23 @@ import 'package:path_provider/path_provider.dart';
 import 'crash_reporter_plugin.dart';
 import 'crash_store.dart';
 
-/// Reports the uncaught errors of the app to the Flocon desktop app.
+/// The Crash reporter plugin, to install with `startFlocon`: reports the uncaught errors of the app to the Flocon
+/// desktop app (see [floconEnableCrashReporter]).
+///
+/// ```dart
+/// await startFlocon((flocon) => flocon..install(FloconCrashReporter()));
+/// ```
+class FloconCrashReporter extends FloconPluginFactory {
+  const FloconCrashReporter({this.storeDirectory});
+
+  /// Where the reports wait to be sent. A folder of the application support folder when null.
+  final Directory? storeDirectory;
+
+  @override
+  Future<void> install() => floconEnableCrashReporter(storeDirectory: storeDirectory);
+}
+
+/// Reports the uncaught errors of the app to the Flocon desktop app. `install(FloconCrashReporter())` calls it.
 ///
 /// It hooks `FlutterError.onError` (errors of the framework: build, layout, gestures...) and
 /// `PlatformDispatcher.instance.onError` (uncaught asynchronous errors). The handlers that were

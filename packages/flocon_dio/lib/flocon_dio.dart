@@ -2,4 +2,3 @@
 library;
 
 export 'src/flocon_dio_interceptor.dart';
-export 'src/network_options.dart';

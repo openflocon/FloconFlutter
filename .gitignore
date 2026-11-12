@@ -32,3 +32,6 @@ build/
 
 # Libraries do not commit their lockfile
 packages/*/pubspec.lock
+
+# graphify knowledge graph, local cache
+graphify-out/

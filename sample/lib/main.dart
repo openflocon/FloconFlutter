@@ -1,13 +1,6 @@
-import 'dart:io';
-
 import 'package:flocon/flocon.dart';
-import 'package:flocon_crash_reporter/flocon_crash_reporter.dart';
-import 'package:flocon_database/flocon_database.dart';
-import 'package:flocon_files/flocon_files.dart';
-import 'package:flocon_shared_preferences/flocon_shared_preferences.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'screens/analytics_screen.dart';
 import 'screens/connection_screen.dart';
@@ -22,22 +15,16 @@ import 'screens/images_screen.dart';
 import 'screens/network_screen.dart';
 import 'screens/preferences_screen.dart';
 import 'screens/timeline_screen.dart';
+import 'startup/flocon_setup.dart';
 import 'startup/sample_state.dart';
 import 'theme/sample_screen.dart';
 import 'theme/sample_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  Flocon.isLoggingEnabled = kDebugMode;
-  // Android emulator reaches the host machine through 10.0.2.2.
-  // On a physical device, use Flocon.connect (or scan the QR code) with the local IP of the computer running Flocon.
-  Flocon.initialize(config: FloconConfig(host: Platform.isAndroid ? '10.0.2.2' : 'localhost'));
-  await floconEnableFilesPlugin();
-  await floconEnableDatabasePlugin();
-  await floconEnableCrashReporter();
-  FloconLifecycleObserver.start();
+  // Debug builds only: every other Flocon call of the app does nothing when Flocon is not initialized.
+  if (kDebugMode) await initializeFlocon();
   await SampleStartup.run();
-  floconRegisterSharedPreferences(await SharedPreferences.getInstance());
   runApp(const SampleApp());
 }
 

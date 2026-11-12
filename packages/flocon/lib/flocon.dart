@@ -9,6 +9,8 @@ export 'src/client/file_uploader.dart'
 export 'src/core/logger.dart' show FloconLogger;
 export 'src/core/plugin.dart';
 export 'src/flocon.dart';
+export 'src/platform_registration.dart' show FloconDartPlugin;
+export 'src/start.dart';
 export 'src/model/message_from_server.dart';
 export 'src/plugins/analytics/analytics_plugin.dart';
 export 'src/plugins/dashboard/dashboard_content.dart' show FloconDashboardContent, FloconForm, FloconSection;
@@ -19,6 +21,7 @@ export 'src/plugins/feature_flags/feature_flags_plugin.dart' show FloconFeatureF
 export 'src/plugins/table/table_plugin.dart';
 export 'src/plugins/timeline/timeline_observers.dart';
 export 'src/plugins/timeline/timeline_plugin.dart';
+export 'src/plugins/network/network_options.dart';
 export 'src/plugins/network/network_overrides.dart';
 export 'src/plugins/network/network_plugin.dart';
 export 'src/plugins/network/web_socket_event.dart';

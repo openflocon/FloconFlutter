@@ -127,7 +127,7 @@ void main() {
       final message = sender.sent.single;
       expect((message.plugin, message.method), ('database', 'get_databases'));
       expect(message.body, [
-        {'id': FloconDatabase.idOf(path), 'name': 'app.sqlite'},
+        {'id': FloconDatabaseFile.idOf(path), 'name': 'app.sqlite'},
       ]);
       plugin.onConnectedToServer();
       await Future<void>.delayed(const Duration(milliseconds: 100));
@@ -159,9 +159,9 @@ void main() {
       final elsewhere = File('${Directory.systemTemp.path}/shared_${DateTime.now().microsecondsSinceEpoch}.db')
         ..writeAsBytesSync(File(path).readAsBytesSync());
       addTearDown(elsewhere.deleteSync);
-      plugin.register(FloconDatabase(displayName: 'Shared', path: elsewhere.path));
-      plugin.register(FloconDatabase(displayName: 'Main', path: path));
-      plugin.register(FloconDatabase(displayName: 'Gone', path: '${dir.path}/gone.db'));
+      plugin.register(FloconDatabaseFile(displayName: 'Shared', path: elsewhere.path));
+      plugin.register(FloconDatabaseFile(displayName: 'Main', path: path));
+      plugin.register(FloconDatabaseFile(displayName: 'Gone', path: '${dir.path}/gone.db'));
       await Future<void>.delayed(const Duration(milliseconds: 100));
       sender.sent.clear();
       await plugin.handleMessage(_msg('get_databases', {}));
@@ -170,11 +170,11 @@ void main() {
     });
 
     test('logs the queries of the app, linked to their database', () {
-      plugin.logQuery(FloconDatabase.idOf(path), 'SELECT * FROM users WHERE id = ?', [42, null, 'a']);
+      plugin.logQuery(FloconDatabaseFile.idOf(path), 'SELECT * FROM users WHERE id = ?', [42, null, 'a']);
       final message = sender.sent.single;
       expect((message.plugin, message.method), ('database', 'log_query'));
       expect(message.body, {
-        'dbId': FloconDatabase.idOf(path),
+        'dbId': FloconDatabaseFile.idOf(path),
         'sqlQuery': 'SELECT * FROM users WHERE id = ?',
         'bindArgs': ['42', 'null', 'a'],
         'timestamp': 42,

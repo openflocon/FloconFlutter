@@ -76,14 +76,26 @@ void main() {
             http.Response('png', 200, headers: {'content-type': 'image/png'}),
       ),
       plugin: plugin,
-      shouldLog: (r) => !r.url.path.contains('skip'),
     );
+    plugin.options = FloconNetwork(shouldLog: (r) => !r.url.path.contains('skip'));
     await client.get(Uri.parse('https://x.test/i.png'));
     expect(sender.sent[1].body['isImage'], true);
     expect(sender.sent[1].body['responseBody'], null);
     sender.sent.clear();
     await client.get(Uri.parse('https://x.test/skip'));
     expect(sender.sent, isEmpty);
+  });
+
+  test('isImage of FloconNetwork marks a response without image content type', () async {
+    plugin.options = FloconNetwork(isImage: (request, response) => request.url.host == 'img.test');
+    final client = FloconHttpClient(MockClient((r) async => http.Response('bytes', 200)), plugin: plugin);
+    await client.get(Uri.parse('https://img.test/1'));
+    expect(sender.sent[1].body['isImage'], true);
+    expect(sender.sent[1].body['responseBody'], null);
+  });
+
+  test('withFlocon wraps the client', () {
+    expect(http.Client().withFlocon(), isA<FloconHttpClient>());
   });
 
   group('mocks and bad network', () {

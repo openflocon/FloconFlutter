@@ -1,17 +1,23 @@
 name: flocon_http
 description: package:http client wrapper that sends your HTTP calls to the Flocon desktop debugger.
-version: 0.0.1
-publish_to: none
+repository: https://github.com/openflocon/FloconFlutter/tree/main/packages/flocon_http
+issue_tracker: https://github.com/openflocon/FloconFlutter/issues
+topics:
+  - debugging
+  - devtools
+  - network
+  - http
+  - flocon
+version: 0.0.2
 
 environment:
-  sdk: ^3.8.1
-  flutter: ">=1.17.0"
+  sdk: ^3.10.0
+  flutter: ">=3.38.1"
 
 dependencies:
   flutter:
     sdk: flutter
-  flocon:
-    path: ../flocon
+  flocon: ^0.0.2
   http: ^1.6.0
   uuid: ^4.6.0
 
@@ -19,3 +25,8 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+
+# Local development only, ignored by pub.dev: use the sibling flocon package.
+dependency_overrides:
+  flocon:
+    path: ../flocon
