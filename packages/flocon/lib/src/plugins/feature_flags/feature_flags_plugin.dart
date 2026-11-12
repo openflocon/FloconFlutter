@@ -47,22 +47,18 @@ class FloconFeatureFlag {
 /// flags previously registered for the provider, and they are sent again when the app reconnects to the desktop.
 ///
 /// ```dart
-/// floconFeatureFlags('firebase').register([
+/// Flocon.featureFlags.register('firebase', [
 ///   FloconFeatureFlag(name: 'new_checkout', state: FloconFeatureFlagState.custom, variant: 'treatment', payload: '{"steps": 3}'),
 ///   FloconFeatureFlag(name: 'dark_mode', state: FloconFeatureFlagState.on, variant: 'on'),
 /// ]);
 /// ```
 class FloconFeatureFlags {
-  const FloconFeatureFlags._(this.provider);
+  const FloconFeatureFlags();
 
-  final String provider;
-
-  /// Replaces the flags of the provider. Does nothing before `Flocon.initialize`.
-  void register(List<FloconFeatureFlag> flags) => Flocon.featureFlagsPlugin?.register(provider, flags);
+  /// Replaces the flags of [provider], for example `'firebase'`. Does nothing before `Flocon.initialize`.
+  void register(String provider, List<FloconFeatureFlag> flags) =>
+      Flocon.featureFlagsPlugin?.register(provider, flags);
 }
-
-/// The registrar of a feature flag provider, for example `'firebase'`.
-FloconFeatureFlags floconFeatureFlags(String provider) => FloconFeatureFlags._(provider);
 
 /// Sends the feature flags of the app to the Flocon desktop app.
 class FloconFeatureFlagsPlugin implements FloconPlugin {

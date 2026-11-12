@@ -45,8 +45,8 @@ void main() {
     });
 
     test('the facade does nothing before initialize', () {
-      floconTimeline.logNavigation('Home');
-      floconTimeline.logTagged('t', 'v');
+      Flocon.timeline.logNavigation('Home');
+      Flocon.timeline.logTagged('t', 'v');
     });
 
     test('the navigator observer logs pushes, pops and replacements', () {
@@ -111,7 +111,7 @@ void main() {
     });
 
     test('the facade does nothing before initialize', () {
-      floconFeatureFlags('firebase').register(const []);
+      Flocon.featureFlags.register('firebase', const []);
     });
   });
 
@@ -170,7 +170,7 @@ void main() {
     });
 
     test('the facade does nothing before initialize', () {
-      floconRegisterDeeplinks(const [FloconDeeplink('myapp://home')]);
+      Flocon.deeplinks.register(const [FloconDeeplink('myapp://home')]);
     });
   });
 }

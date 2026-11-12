@@ -51,7 +51,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             buttonTitle: 'Add',
             action: () async {
               _rows++;
-              floconTable('sample_users').log([
+              Flocon.table.table('sample_users').log([
                 TableColumnConfig('name', _names[_rows % _names.length]),
                 TableColumnConfig('age', '${20 + _rows}'),
                 TableColumnConfig('created', DateTime.now().toIso8601String()),
@@ -64,7 +64,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             detail: 'Columns are created from the names you use',
             buttonTitle: 'Add',
             action: () async {
-              floconTable('sample_settings').log([
+              Flocon.table.table('sample_settings').log([
                 const TableColumnConfig('key', 'dark_mode'),
                 TableColumnConfig('value', DateTime.now().second.isEven ? 'true' : 'false'),
               ]);

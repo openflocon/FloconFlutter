@@ -36,9 +36,9 @@ enum TimelineLevel { debug, info, warning, error }
 /// Logs what happens in the app in the Flocon timeline: navigation, user actions, lifecycle and your own events.
 ///
 /// ```dart
-/// floconTimeline.logNavigation('CheckoutScreen', params: {'from': 'CartScreen'});
-/// floconTimeline.logUserAction('tap_buy', params: {'sku': 'premium_yearly'});
-/// floconTimeline.logTagged('billing', 'Purchase failed', level: TimelineLevel.error);
+/// Flocon.timeline.logNavigation('CheckoutScreen', params: {'from': 'CartScreen'});
+/// Flocon.timeline.logUserAction('tap_buy', params: {'sku': 'premium_yearly'});
+/// Flocon.timeline.logTagged('billing', 'Purchase failed', level: TimelineLevel.error);
 /// ```
 ///
 /// There are two kinds of calls, never mixed: the typed ones have no level, the tagged one always has one. Params are
@@ -71,9 +71,6 @@ class FloconTimeline {
   void logLifecycle(String value, {Map<String, String> params = const {}}) =>
       log(TimelineType.lifecycle, value, params: params);
 }
-
-/// The timeline logger.
-const floconTimeline = FloconTimeline();
 
 /// Sends the timeline events to the Flocon desktop app.
 class FloconTimelinePlugin implements FloconPlugin {

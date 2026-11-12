@@ -61,7 +61,7 @@ void main() {
   });
 
   test('helpers are no-ops before initialize', () {
-    floconAnalytics('x').logEvents([const AnalyticsEvent(eventName: 'e')]);
-    floconTable('t').log([const TableColumnConfig('a', 'b')]);
+    Flocon.analytics.sender('x').logEvents([const AnalyticsEvent(eventName: 'e')]);
+    Flocon.table.table('t').log([const TableColumnConfig('a', 'b')]);
   });
 }

@@ -48,7 +48,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             detail: 'One event with one property',
             buttonTitle: 'Send',
             action: () async {
-              floconAnalytics(_stream.text).logEvents([
+              Flocon.analytics.sender(_stream.text).logEvents([
                 AnalyticsEvent(eventName: _event.text, properties: [AnalyticsProperty(_key.text, _value.text)]),
               ]);
               return 'sent on "${_stream.text}"';
@@ -61,7 +61,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             detail: 'One event in the stream "sample"',
             buttonTitle: 'Send',
             action: () async {
-              floconAnalytics('sample').logEvents([
+              Flocon.analytics.sender('sample').logEvents([
                 AnalyticsEvent(eventName: 'button_tapped', properties: [AnalyticsProperty('at', DateTime.now().toIso8601String())]),
               ]);
               return null;
@@ -72,7 +72,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             detail: 'Two events from one stream',
             buttonTitle: 'Send',
             action: () async {
-              floconAnalytics('firebase').logEvents([
+              Flocon.analytics.sender('firebase').logEvents([
                 const AnalyticsEvent(eventName: 'screen_view', properties: [AnalyticsProperty('screen_name', 'AnalyticsScreen'), AnalyticsProperty('screen_class', 'Flutter')]),
                 const AnalyticsEvent(eventName: 'add_to_cart', properties: [AnalyticsProperty('item_id', 'sku_42'), AnalyticsProperty('value', '9.99'), AnalyticsProperty('currency', 'EUR')]),
               ]);
@@ -84,7 +84,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             detail: 'A second provider, a second table',
             buttonTitle: 'Send',
             action: () async {
-              floconAnalytics('amplitude').logEvents([
+              Flocon.analytics.sender('amplitude').logEvents([
                 const AnalyticsEvent(eventName: 'purchase', properties: [AnalyticsProperty('sku', 'pro_monthly'), AnalyticsProperty('price', '9.99')]),
               ]);
               return null;

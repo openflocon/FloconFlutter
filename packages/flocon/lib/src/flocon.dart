@@ -69,6 +69,25 @@ class Flocon {
   static FloconDashboardPlugin? get dashboardPlugin =>
       _client?.plugin<FloconDashboardPlugin>();
 
+  /// Logs the events of your analytics providers: `Flocon.analytics.sender('firebase').log('event')`.
+  /// Like the other entry points below, it does nothing before [initialize].
+  static const analytics = FloconAnalytics();
+
+  /// Logs rows in a table: `Flocon.table.table('users').log([...])`.
+  static const table = FloconTables();
+
+  /// Logs the timeline events: `Flocon.timeline.logNavigation('Home')`.
+  static const timeline = FloconTimeline();
+
+  /// Registers the feature flags of a provider: `Flocon.featureFlags.register('firebase', [...])`.
+  static const featureFlags = FloconFeatureFlags();
+
+  /// Registers the deeplinks of the app: `Flocon.deeplinks.register([...])`.
+  static const deeplinks = FloconDeeplinks();
+
+  /// Shows values and actions of the app: `Flocon.dashboard.dashboard('main', [...])`.
+  static const dashboard = FloconDashboards();
+
   /// Starts the SDK. It connects in the background to `config.host` (`localhost` by default), retrying every
   /// 3 seconds until a desktop is reachable, and again whenever the connection drops; what the app logs is kept in
   /// memory meanwhile. Calling it twice has no effect.

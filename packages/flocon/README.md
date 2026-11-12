@@ -29,10 +29,10 @@ Future<void> main() async {
   runApp(const MyApp());
 }
 
-floconAnalytics('firebase').logEvents([
+Flocon.analytics.sender('firebase').logEvents([
   AnalyticsEvent(eventName: 'button_clicked', properties: [AnalyticsProperty('button_id', 'pay')]),
 ]);
-floconTimeline.logUserAction('tap_buy');
+Flocon.timeline.logUserAction('tap_buy');
 ```
 
 HTTP calls are captured by [`flocon_dio`](https://pub.dev/packages/flocon_dio) or

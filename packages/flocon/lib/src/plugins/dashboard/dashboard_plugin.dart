@@ -29,7 +29,7 @@ class FloconDashboardHandle {
 /// value, and again on each connection. Does nothing before `Flocon.initialize`.
 ///
 /// ```dart
-/// final handle = floconDashboard('main', [
+/// final handle = Flocon.dashboard.dashboard('main', [
 ///   FloconSection.listen('User', session.user, (user) => [
 ///     FloconText('name', user.name),
 ///     FloconButton('Log out', id: 'logout', onClick: session.logOut),
@@ -43,12 +43,15 @@ class FloconDashboardHandle {
 ///   ], submitText: 'Create', onSubmitted: (values) => session.createUser(values['name']!, values['admin'] == 'true')),
 /// ]);
 /// ```
-FloconDashboardHandle floconDashboard(
-  String id,
-  List<FloconDashboardContent> contents,
-) =>
-    Flocon.dashboardPlugin?.dashboard(id, contents) ??
-    FloconDashboardHandle([]);
+class FloconDashboards {
+  const FloconDashboards();
+
+  FloconDashboardHandle dashboard(
+    String id,
+    List<FloconDashboardContent> contents,
+  ) =>
+      Flocon.dashboardPlugin?.dashboard(id, contents) ?? FloconDashboardHandle([]);
+}
 
 /// Sends the dashboards of the app to the Flocon desktop app, and routes the actions made there.
 class FloconDashboardPlugin implements FloconPlugin {

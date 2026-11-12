@@ -10,11 +10,11 @@ Future<void> main() async {
       ..install(FloconNetwork(isImage: (request, _) => request.url.host == 'picsum.photos')));
   }
 
-  floconAnalytics('firebase').logEvents([
+  Flocon.analytics.sender('firebase').logEvents([
     AnalyticsEvent(eventName: 'app_started', properties: [AnalyticsProperty('source', 'example')]),
   ]);
-  floconTable('users').log([TableColumnConfig('name', 'Ada')]);
-  floconTimeline.logLifecycle('started');
+  Flocon.table.table('users').log([TableColumnConfig('name', 'Ada')]);
+  Flocon.timeline.logLifecycle('started');
 
   runApp(MaterialApp(
     navigatorObservers: [FloconNavigatorObserver()],

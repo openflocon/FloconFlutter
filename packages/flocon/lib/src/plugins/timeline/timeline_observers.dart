@@ -11,7 +11,7 @@ import 'timeline_plugin.dart';
 /// A route is named by its `RouteSettings.name`, otherwise by its type; give your routes names (or use a router
 /// that does) to read them in the timeline.
 class FloconNavigatorObserver extends NavigatorObserver {
-  FloconNavigatorObserver({FloconTimeline timeline = floconTimeline}) : _timeline = timeline;
+  FloconNavigatorObserver({FloconTimeline timeline = const FloconTimeline()}) : _timeline = timeline;
 
   final FloconTimeline _timeline;
 
@@ -37,14 +37,14 @@ class FloconNavigatorObserver extends NavigatorObserver {
 
 /// Logs the lifecycle of the app (resumed, inactive, paused, hidden, detached) in the timeline.
 class FloconLifecycleObserver with WidgetsBindingObserver {
-  FloconLifecycleObserver._({FloconTimeline timeline = floconTimeline}) : _timeline = timeline;
+  FloconLifecycleObserver._({FloconTimeline timeline = const FloconTimeline()}) : _timeline = timeline;
 
   final FloconTimeline _timeline;
 
   static FloconLifecycleObserver? _instance;
 
   /// Starts logging the lifecycle of the app. Calling it twice has no effect.
-  static void start({FloconTimeline timeline = floconTimeline}) {
+  static void start({FloconTimeline timeline = const FloconTimeline()}) {
     if (_instance != null) return;
     WidgetsFlutterBinding.ensureInitialized();
     _instance = FloconLifecycleObserver._(timeline: timeline);
