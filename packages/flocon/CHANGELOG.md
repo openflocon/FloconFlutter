@@ -1,3 +1,6 @@
+## 2.0.0
+- No user-facing change.
+
 ## 0.0.3
 - Send `sdk: flutter` in the `bonjour` handshake, like the Kotlin and Swift SDKs, so the desktop telemetry can tell the SDKs apart.
 - Declare Linux and Windows support. They run the same Dart code as the other desktops; only the app icon is not sent (no native side).

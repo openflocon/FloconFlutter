@@ -1,3 +1,6 @@
+## 2.0.0
+- Version aligned with flocon 2.0.0.
+
 ## 0.0.3
 - Version aligned with flocon 0.0.3.
 
