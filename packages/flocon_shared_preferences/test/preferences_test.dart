@@ -81,6 +81,6 @@ void main() {
   });
 
   test('registration is a no-op before Flocon.initialize', () {
-    floconRegisterSharedPreferences(prefs);
+    Flocon.preferences.register(prefs);
   });
 }

@@ -1,3 +1,4 @@
+import 'package:flocon/flocon.dart';
 import 'package:flocon_shared_preferences/flocon_shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -19,7 +20,7 @@ class PreferencesScreen extends StatelessWidget {
             buttonTitle: 'Show',
             action: () async {
               final prefs = await SharedPreferences.getInstance();
-              floconRegisterSharedPreferences(prefs);
+              Flocon.preferences.register(prefs);
               return '${prefs.getKeys().length} keys';
             },
           ),

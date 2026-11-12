@@ -10,6 +10,6 @@ Future<void> main() async {
   if (kDebugMode) {
     // shows the usual folders of the app
     await startFlocon((flocon) => flocon..install(const FloconFiles()));
-    floconRegisterFilesFolder('Exports', Directory('${Directory.systemTemp.path}/exports'));
+    Flocon.files.register('Exports', Directory('${Directory.systemTemp.path}/exports'));
   }
 }

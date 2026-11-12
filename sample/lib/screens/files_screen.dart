@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flocon/flocon.dart';
 import 'package:flocon_files/flocon_files.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -55,7 +56,7 @@ class FilesScreen extends StatelessWidget {
             action: () async {
               final docs = await getApplicationDocumentsDirectory();
               final exports = await Directory('${docs.path}/exports').create(recursive: true);
-              floconRegisterFilesFolder('Exports', exports);
+              Flocon.files.register('Exports', exports);
               return exports.path;
             },
           ),

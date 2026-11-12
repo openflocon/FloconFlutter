@@ -14,6 +14,7 @@ import 'plugins/deeplinks/deeplinks_plugin.dart';
 import 'plugins/feature_flags/feature_flags_plugin.dart';
 import 'plugins/network/network_plugin.dart';
 import 'plugins/network/network_store.dart';
+import 'plugins/plugin_apis.dart';
 import 'plugins/table/table_plugin.dart';
 import 'plugins/timeline/timeline_plugin.dart';
 
@@ -87,6 +88,18 @@ class Flocon {
 
   /// Shows values and actions of the app: `Flocon.dashboard.dashboard('main', [...])`.
   static const dashboard = FloconDashboards();
+
+  /// The helpers of the Network plugin: `Flocon.network.logWebSocketEvent(event)`.
+  static const network = FloconNetworkApi();
+
+  /// Lists databases and logs their queries: `Flocon.database.register('Dogs', path)`. Needs `flocon_database`.
+  static const database = FloconDatabaseApi();
+
+  /// Shows `SharedPreferences`: `Flocon.preferences.register(prefs)`. Needs `flocon_shared_preferences`.
+  static const preferences = FloconPreferencesApi();
+
+  /// Shows folders: `Flocon.files.register('Exports', directory)`. Needs `flocon_files`.
+  static const files = FloconFilesApi();
 
   /// Starts the SDK. It connects in the background to `config.host` (`localhost` by default), retrying every
   /// 3 seconds until a desktop is reachable, and again whenever the connection drops; what the app logs is kept in

@@ -8,6 +8,6 @@ Future<void> main() async {
   if (kDebugMode) {
     // lists the SQLite files of the usual folders
     await startFlocon((flocon) => flocon..install(const FloconDatabase()));
-    floconRegisterDatabase('Shared', '/path/to/shared.sqlite');
+    Flocon.database.register('Shared', '/path/to/shared.sqlite');
   }
 }

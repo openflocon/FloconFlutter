@@ -12,7 +12,7 @@ import 'shared_preferences_store.dart';
 /// await startFlocon((flocon) => flocon..install(FloconSharedPreferences(prefs)));
 /// ```
 ///
-/// Register other instances later with [floconRegisterSharedPreferences].
+/// Register other instances later with `Flocon.preferences.register`.
 class FloconSharedPreferences extends FloconPluginFactory {
   const FloconSharedPreferences(this.prefs, {this.name = 'SharedPreferences'});
 
@@ -22,25 +22,27 @@ class FloconSharedPreferences extends FloconPluginFactory {
   final String name;
 
   @override
-  Future<void> install() async => floconRegisterSharedPreferences(prefs, name: name);
+  Future<void> install() async => Flocon.preferences.register(prefs, name: name);
 }
 
-/// Shows a [SharedPreferences] instance in the Preferences section of the Flocon desktop app.
-/// Values of type `String`, `bool`, `int`, `double` and `List<String>` can be edited from the desktop.
-///
-/// ```dart
-/// final prefs = await SharedPreferences.getInstance();
-/// floconRegisterSharedPreferences(prefs);
-/// ```
-///
-/// Does nothing if `Flocon.initialize` has not been called.
-void floconRegisterSharedPreferences(SharedPreferences prefs, {String name = 'SharedPreferences'}) {
-  final sender = Flocon.messageSender;
-  if (sender == null) return;
-  var plugin = Flocon.plugin<FloconPreferencesPlugin>();
-  if (plugin == null) {
-    plugin = FloconPreferencesPlugin(sender: sender);
-    Flocon.register(plugin);
+extension FloconPreferencesApiMethods on FloconPreferencesApi {
+  /// Shows a [SharedPreferences] instance in the Preferences section of the Flocon desktop app.
+  /// Values of type `String`, `bool`, `int`, `double` and `List<String>` can be edited from the desktop.
+  ///
+  /// ```dart
+  /// final prefs = await SharedPreferences.getInstance();
+  /// Flocon.preferences.register(prefs);
+  /// ```
+  ///
+  /// Does nothing if `Flocon.initialize` has not been called.
+  void register(SharedPreferences prefs, {String name = 'SharedPreferences'}) {
+    final sender = Flocon.messageSender;
+    if (sender == null) return;
+    var plugin = Flocon.plugin<FloconPreferencesPlugin>();
+    if (plugin == null) {
+      plugin = FloconPreferencesPlugin(sender: sender);
+      Flocon.register(plugin);
+    }
+    plugin.registerAndNotify(SharedPreferencesStore(prefs, name));
   }
-  plugin.registerAndNotify(SharedPreferencesStore(prefs, name));
 }

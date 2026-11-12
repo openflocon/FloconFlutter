@@ -25,7 +25,7 @@ import 'package:flocon_files/flocon_files.dart';
 
 // Documents, Application Support, Caches, tmp and the app container
 await startFlocon((flocon) => flocon..install(FloconFiles()));
-floconRegisterFilesFolder('Exports', Directory('${docs.path}/exports'));
+Flocon.files.register('Exports', Directory('${docs.path}/exports'));
 ```
 
 Nothing outside of the root folders is reachable.
