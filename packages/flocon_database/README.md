@@ -25,8 +25,8 @@ import 'package:flocon_database/flocon_database.dart';
 
 // the databases, documents and application support folders
 await startFlocon((flocon) => flocon..install(FloconDatabase()));
-floconRegisterDatabase('Shared', '/path/to/shared.sqlite');
-floconLogDatabaseQuery(path, statement, args); // from the hook of your database library
+Flocon.database.register('Shared', '/path/to/shared.sqlite');
+Flocon.database.logQuery(path, statement, args); // from the hook of your database library
 ```
 
 See the [full documentation](https://github.com/openflocon/FloconFlutter#readme) and the [`example`](example/main.dart).

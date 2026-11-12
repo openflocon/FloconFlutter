@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flocon/flocon.dart';
 import 'package:flocon_database/flocon_database.dart';
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
@@ -29,7 +30,7 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
       version: 1,
       onCreate: (db, _) => db.execute('CREATE TABLE dogs (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, breed TEXT NOT NULL)'),
     );
-    floconRegisterDatabase('Dogs', path);
+    Flocon.database.register('Dogs', path);
     return _db = db;
   }
 
@@ -37,7 +38,7 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
     final db = await _open();
     final (name, breed) = _dogs[Random().nextInt(_dogs.length)];
     const sql = 'INSERT INTO dogs (name, breed) VALUES (?, ?)';
-    floconLogDatabaseQuery(db.path, sql, [name, breed]);
+    Flocon.database.logQuery(db.path, sql, [name, breed]);
     final id = await db.rawInsert(sql, [name, breed]);
     return '$name ($breed) → id $id';
   }
@@ -45,7 +46,7 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
   Future<String?> _count() async {
     final db = await _open();
     const sql = 'SELECT COUNT(*) AS count FROM dogs';
-    floconLogDatabaseQuery(db.path, sql);
+    Flocon.database.logQuery(db.path, sql);
     final rows = await db.rawQuery(sql);
     return '${rows.first['count']} dog(s)';
   }
@@ -53,7 +54,7 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
   Future<String?> _clear() async {
     final db = await _open();
     const sql = 'DELETE FROM dogs';
-    floconLogDatabaseQuery(db.path, sql);
+    Flocon.database.logQuery(db.path, sql);
     return '${await db.rawDelete(sql)} row(s) deleted';
   }
 

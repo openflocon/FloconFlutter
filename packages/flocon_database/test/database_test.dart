@@ -191,8 +191,8 @@ void main() {
 
   test('the facades do nothing before initialize', () async {
     await floconEnableDatabasePlugin(searchDirectories: const []);
-    floconRegisterDatabase('x', '/tmp/x.db');
-    floconLogDatabaseQuery('/tmp/x.db', 'SELECT 1');
+    Flocon.database.register('x', '/tmp/x.db');
+    Flocon.database.logQuery('/tmp/x.db', 'SELECT 1');
     expect(Flocon.plugin<FloconDatabasePlugin>(), isNull);
   });
 }

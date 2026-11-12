@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-import '../../flocon.dart';
-
 enum FloconWebSocketEventType {
   closed,
   closing,
@@ -31,8 +29,3 @@ class FloconWebSocketEvent {
   final String? error;
   final DateTime timestamp;
 }
-
-/// Sends a WebSocket event to the desktop app. WebSocket traffic cannot be intercepted
-/// automatically: call this for each event of the connections you want to inspect.
-void floconLogWebSocketEvent(FloconWebSocketEvent event) =>
-    Flocon.networkPlugin?.logWebSocketEvent(event);

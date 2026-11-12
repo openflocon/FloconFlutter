@@ -37,7 +37,7 @@ class NetworkScreen extends StatelessWidget {
   /// The events of a WebSocket are logged by hand.
   static Future<String?> _webSocketEcho() async {
     const url = 'wss://echo.websocket.events';
-    void log(FloconWebSocketEventType type, {String? message, Object? error}) => floconLogWebSocketEvent(
+    void log(FloconWebSocketEventType type, {String? message, Object? error}) => Flocon.network.logWebSocketEvent(
         FloconWebSocketEvent(websocketUrl: url, event: type, message: message, error: error));
     final socket = await WebSocket.connect(url).timeout(const Duration(seconds: 8));
     log(FloconWebSocketEventType.open);

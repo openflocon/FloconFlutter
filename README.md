@@ -9,7 +9,7 @@ Once the SDK is started, your app connects to the Flocon desktop app and shows, 
 | --- | --- |
 | **Network** (HTTP) | [`dio.withFlocon()`](#dio) for [Dio](https://pub.dev/packages/dio), [`client.withFlocon()`](#packagehttp) for [`package:http`](https://pub.dev/packages/http). Headers, bodies, timing, errors, images. Separate packages, so you only pull the HTTP library you use |
 | **Network mocks** and **bad network** | configured from the desktop, applied by the Dio and `http` adapters, nothing to code (see [Mocks](#mocks-and-bad-network)) |
-| **Network** (WebSocket) | [`floconLogWebSocketEvent`](#websockets): log the events of the connections you want to inspect |
+| **Network** (WebSocket) | [`Flocon.network.logWebSocketEvent`](#websockets): log the events of the connections you want to inspect |
 | **Analytics** | [`Flocon.analytics`](#analytics): one table per stream (e.g. per provider) |
 | **Feature flags** | [`Flocon.featureFlags`](#feature-flags): the flags your app evaluated, with their variant and payload |
 | **Timeline** | [`Flocon.timeline`](#timeline): navigation, user actions, lifecycle and your own events |
@@ -303,7 +303,7 @@ Add the interceptor last, so the mock is not seen by interceptors added after it
 WebSocket traffic cannot be intercepted automatically: log the events of the connections you want to inspect.
 
 ```dart
-floconLogWebSocketEvent(FloconWebSocketEvent(
+Flocon.network.logWebSocketEvent(FloconWebSocketEvent(
   websocketUrl: url,
   event: FloconWebSocketEventType.sendMessage, // open, closing, closed, error, sendMessage, receiveMessage
   message: text,
@@ -406,7 +406,7 @@ hexadecimal, truncated after 64 bytes. Only the listed databases can be queried.
 Register the databases stored elsewhere, or give one a clearer name:
 
 ```dart
-floconRegisterDatabase('Shared', '/path/to/shared.sqlite');
+Flocon.database.register('Shared', '/path/to/shared.sqlite');
 ```
 
 To see the queries run by the app, log them from the hook of your database library. A query is linked to its database by
@@ -419,7 +419,7 @@ class FloconQueryInterceptor extends QueryInterceptor {
 
   @override
   Future<List<Map<String, Object?>>> runSelect(QueryExecutor e, String statement, List<Object?> args) {
-    floconLogDatabaseQuery(path, statement, args);
+    Flocon.database.logQuery(path, statement, args);
     return super.runSelect(e, statement, args);
   }
   // same for runInsert, runUpdate, runDelete, runCustom
@@ -482,7 +482,7 @@ The desktop lists the keys with their typed values and lets you edit `String`, `
 and `List<String>` values; an edit is only applied when its type matches the stored one. Any key can be deleted from the
 desktop (right-click on a row, then Delete). The store is shown with its type (`SharedPreferences`).
 Install it several times with different names, or register other instances later with
-`floconRegisterSharedPreferences(prefs, name: 'Other')`.
+`Flocon.preferences.register(prefs, name: 'Other')`.
 
 ## Files
 
@@ -500,7 +500,7 @@ a folder.
 Register other folders, such as an export folder, to show them next to the default ones:
 
 ```dart
-floconRegisterFilesFolder('Exports', Directory('${docs.path}/exports'));
+Flocon.files.register('Exports', Directory('${docs.path}/exports'));
 ```
 
 - Nothing outside of the root folders is reachable (`..` and symbolic links are resolved), and the root folders themselves

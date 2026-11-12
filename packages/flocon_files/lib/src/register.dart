@@ -13,7 +13,7 @@ import 'files_plugin.dart';
 /// await startFlocon((flocon) => flocon..install(FloconFiles()));
 /// ```
 ///
-/// See [floconEnableFilesPlugin] for the folders shown, and [floconRegisterFilesFolder] to add others.
+/// See [floconEnableFilesPlugin] for the folders shown, and `Flocon.files.register` to add others.
 class FloconFiles extends FloconPluginFactory {
   const FloconFiles({this.defaultRoots});
 
@@ -28,7 +28,7 @@ class FloconFiles extends FloconPluginFactory {
 ///
 /// Without anything to register, the desktop shows the documents, application support, cache and temporary folders
 /// and, on Android and iOS, the whole data folder of the app. Register the other folders with
-/// [floconRegisterFilesFolder]. Nothing outside of the root folders is reachable.
+/// `Flocon.files.register`. Nothing outside of the root folders is reachable.
 ///
 /// Call it after `Flocon.initialize()` (it does nothing before).
 Future<void> floconEnableFilesPlugin({List<FloconFileRoot>? defaultRoots}) async {
@@ -44,12 +44,14 @@ Future<void> floconEnableFilesPlugin({List<FloconFileRoot>? defaultRoots}) async
   ));
 }
 
-/// Shows a folder in the Files section of the Flocon desktop app, under [displayName]; a folder already shown
-/// is renamed. The plugin must be enabled with [floconEnableFilesPlugin] first (it does nothing before).
-void floconRegisterFilesFolder(String displayName, Directory directory) {
-  Flocon.plugin<FloconFilesPlugin>()?.register(
-    FloconFileRoot.registered(displayName: displayName, directory: directory),
-  );
+extension FloconFilesApiMethods on FloconFilesApi {
+  /// Shows a folder in the Files section of the Flocon desktop app, under [displayName]; a folder already shown
+  /// is renamed. The plugin must be enabled with [floconEnableFilesPlugin] first (it does nothing before).
+  void register(String displayName, Directory directory) {
+    Flocon.plugin<FloconFilesPlugin>()?.register(
+      FloconFileRoot.registered(displayName: displayName, directory: directory),
+    );
+  }
 }
 
 Future<List<FloconFileRoot>> _appDefaultRoots() async {
