@@ -1,4 +1,5 @@
 ## Unreleased
+- Send `sdk: flutter` in the `bonjour` handshake, like the Kotlin and Swift SDKs, so the desktop telemetry can tell the SDKs apart.
 - Declare Linux and Windows support. They run the same Dart code as the other desktops; only the app icon is not sent (no native side).
 - Bump `device_info_plus` to ^13.3.0 and `package_info_plus` to ^10.2.2.
 - Minimum SDK raised to Dart 3.10 / Flutter 3.38.1 (required by those dependencies).
