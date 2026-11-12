@@ -1,8 +1,9 @@
 name: Prepare release
 
 # Actions > Prepare release > Run workflow (from main), with the version: 0.1.0
-# Bumps the 8 packages, updates their CHANGELOG.md and opens a PR 'release/flocon-v<version>'.
-# Merging that PR starts tag-release.yml, which tags flocon-v<version> and starts publish.yml.
+# Bumps the 8 packages, updates their CHANGELOG.md, commits on main, pushes the tag
+# flocon-v<version>, then starts 'Release and publish' on that tag.
+# (A tag pushed with GITHUB_TOKEN does not trigger workflows, workflow_dispatch does.)
 
 on:
   workflow_dispatch:
@@ -14,7 +15,7 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
+  actions: write # start publish.yml
 
 concurrency: release
 
@@ -45,14 +46,11 @@ jobs:
       - name: Bump packages and changelogs
         run: .github/scripts/prepare_release.sh "$VERSION" "$RUNNER_TEMP/notes.md"
 
-      - name: Open release PR
+      - name: Commit, tag, start publish
         run: |
-          branch="release/flocon-v$VERSION"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout -b "$branch"
           git commit -am "Release flocon v$VERSION"
-          git push origin "$branch"
-          gh pr create --base main --head "$branch" \
-            --title "Release flocon v$VERSION" \
-            --body "Bumps the 8 packages to $VERSION and updates their CHANGELOG.md. Merging this PR tags flocon-v$VERSION and publishes to pub.dev."
+          git tag "flocon-v$VERSION"
+          git push origin HEAD:main "flocon-v$VERSION"
+          gh workflow run publish.yml --ref "flocon-v$VERSION"
