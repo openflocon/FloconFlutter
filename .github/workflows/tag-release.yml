@@ -1,0 +1,35 @@
+name: Tag release
+
+# Runs when a 'release/flocon-v<version>' PR (opened by 'Prepare release') is merged:
+# tags the merge commit flocon-v<version>, then starts 'Release and publish' on that tag.
+# (A tag pushed with GITHUB_TOKEN does not trigger workflows, workflow_dispatch does.)
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: write
+  actions: write # start publish.yml
+
+jobs:
+  tag:
+    if: github.event.pull_request.merged && startsWith(github.event.pull_request.head.ref, 'release/flocon-v')
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      BRANCH: ${{ github.event.pull_request.head.ref }}
+      SHA: ${{ github.event.pull_request.merge_commit_sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+
+      - name: Tag and start publish
+        run: |
+          version="${BRANCH#release/flocon-v}"
+          grep -qx "version: $version" packages/flocon/pubspec.yaml || { echo "::error::packages/flocon/pubspec.yaml is not at $version"; exit 1; }
+          git tag "flocon-v$version" "$SHA"
+          git push origin "flocon-v$version"
+          gh workflow run publish.yml --ref "flocon-v$version"
