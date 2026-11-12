@@ -124,7 +124,10 @@ class FloconClient implements FloconMessageSender, FloconFileSender {
       infos,
       'bonjour',
       'bonjour',
-      jsonEncode({'connectionType': link.isDefault ? 'default' : 'wifi'}),
+      jsonEncode({
+        'sdk': 'flutter',
+        'connectionType': link.isDefault ? 'default' : 'wifi',
+      }),
     );
     outbox.connected(link.outboxLink, handshake);
     for (final p in _plugins.values) {

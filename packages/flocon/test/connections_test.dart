@@ -113,7 +113,7 @@ void main() {
         'analytics.add_items',
       ]);
       final hello = desktop.received.first;
-      expect(jsonDecode(hello['body'] as String), {'connectionType': 'default'});
+      expect(jsonDecode(hello['body'] as String), {'sdk': 'flutter', 'connectionType': 'default'});
       expect(hello.keys.toSet(), {
         'deviceId',
         'plugin',
@@ -207,6 +207,7 @@ void main() {
       await second.waitForMessages(1);
       expect(second.names, ['bonjour.bonjour']);
       expect(jsonDecode(second.received.first['body'] as String), {
+        'sdk': 'flutter',
         'connectionType': 'wifi',
       });
       client.send(plugin: 'table', method: 'add_items', body: '[4]');
@@ -257,6 +258,7 @@ void main() {
       );
       await second.waitForMessages(1);
       expect(jsonDecode(second.received.first['body'] as String), {
+        'sdk': 'flutter',
         'connectionType': 'wifi',
       });
       expect(client.extraLink!.address.webSocketPort, second.port);
