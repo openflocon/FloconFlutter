@@ -4,18 +4,16 @@ Browse and query the SQLite databases of your app (sqflite, Drift, plain SQLite 
 
 ## Installation
 
-There is no release on pub.dev yet, depend on the repository:
+```bash
+flutter pub add flocon flocon_database
+```
+
+or in `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flocon:
-    git:
-      url: https://github.com/openflocon/FloconFlutter.git
-      path: packages/flocon
-  flocon_database:
-    git:
-      url: https://github.com/openflocon/FloconFlutter.git
-      path: packages/flocon_database
+  flocon: ^LAST_VERSION
+  flocon_database: ^LAST_VERSION
 ```
 
 ## Usage
@@ -29,7 +27,7 @@ Flocon.database.register('Shared', '/path/to/shared.sqlite');
 Flocon.database.logQuery(path, statement, args); // from the hook of your database library
 ```
 
-See the [full documentation](https://github.com/openflocon/FloconFlutter#readme) and the [`example`](example/main.dart).
+See the [documentation](https://openflocon.github.io/Flocon/database/) and the [`example`](example/main.dart).
 
 ## License
 

@@ -4,18 +4,16 @@
 
 ## Installation
 
-There is no release on pub.dev yet, depend on the repository:
+```bash
+flutter pub add flocon flocon_http
+```
+
+or in `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flocon:
-    git:
-      url: https://github.com/openflocon/FloconFlutter.git
-      path: packages/flocon
-  flocon_http:
-    git:
-      url: https://github.com/openflocon/FloconFlutter.git
-      path: packages/flocon_http
+  flocon: ^LAST_VERSION
+  flocon_http: ^LAST_VERSION
 ```
 
 ## Usage
@@ -34,7 +32,7 @@ await startFlocon((flocon) => flocon
   ..install(FloconNetwork(isImage: (request, _) => request.url.host == 'images.example.com')));
 ```
 
-See the [full documentation](https://github.com/openflocon/FloconFlutter#readme) and the [`example`](example/main.dart).
+See the [documentation](https://openflocon.github.io/Flocon/network/) and the [`example`](example/main.dart).
 
 ## License
 

@@ -4,18 +4,16 @@ Connects your app to the [Flocon](https://github.com/openflocon/Flocon) desktop 
 
 ## Installation
 
-There is no release on pub.dev yet, depend on the repository:
+```bash
+flutter pub add flocon flocon_qr_scanner
+```
+
+or in `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flocon:
-    git:
-      url: https://github.com/openflocon/FloconFlutter.git
-      path: packages/flocon
-  flocon_qr_scanner:
-    git:
-      url: https://github.com/openflocon/FloconFlutter.git
-      path: packages/flocon_qr_scanner
+  flocon: ^LAST_VERSION
+  flocon_qr_scanner: ^LAST_VERSION
 ```
 
 ## Usage
@@ -31,7 +29,7 @@ FloconQrScannerView(onResult: (result) {
 Declare the camera usage: `NSCameraUsageDescription` (iOS, macOS), the `CAMERA` permission (Android),
 `com.apple.security.device.camera` in the macOS entitlements. `mobile_scanner` needs `minSdk` 23 on Android.
 
-See the [full documentation](https://github.com/openflocon/FloconFlutter#readme) and the [`example`](example/main.dart).
+See the [documentation](https://openflocon.github.io/Flocon/setup/) and the [`example`](example/main.dart).
 
 ## License
 

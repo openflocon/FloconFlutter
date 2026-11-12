@@ -4,14 +4,15 @@ Core of the Flutter SDK for [Flocon](https://github.com/openflocon/Flocon), the 
 
 ## Installation
 
-There is no release on pub.dev yet, depend on the repository:
+```bash
+flutter pub add flocon
+```
+
+or in `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flocon:
-    git:
-      url: https://github.com/openflocon/FloconFlutter.git
-      path: packages/flocon
+  flocon: ^LAST_VERSION
 ```
 
 ## Usage
@@ -38,7 +39,7 @@ Flocon.timeline.logUserAction('tap_buy');
 HTTP calls are captured by [`flocon_dio`](https://pub.dev/packages/flocon_dio) or
 [`flocon_http`](https://pub.dev/packages/flocon_http).
 
-See the [full documentation](https://github.com/openflocon/FloconFlutter#readme) and the [`example`](example/main.dart).
+See the [documentation](https://openflocon.github.io/Flocon/setup/) and the [`example`](example/main.dart).
 
 ## License
 
