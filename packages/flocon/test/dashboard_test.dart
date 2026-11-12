@@ -235,7 +235,7 @@ void main() {
   });
 
   test('the facade does nothing before initialize', () async {
-    final handle = floconDashboard('main', [FloconSection('S', const [])]);
+    final handle = Flocon.dashboard.dashboard('main', [FloconSection('S', const [])]);
     await handle.dispose();
   });
 }

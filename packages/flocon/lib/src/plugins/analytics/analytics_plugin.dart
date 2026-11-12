@@ -24,21 +24,28 @@ class AnalyticsEvent {
 /// Use one stream per analytics provider.
 ///
 /// ```dart
-/// floconAnalytics('firebase').logEvents([
+/// Flocon.analytics.sender('firebase').logEvents([
 ///   AnalyticsEvent(eventName: 'button_clicked', properties: [AnalyticsProperty('id', 'pay')]),
 /// ]);
 /// ```
 class FloconAnalytics {
-  const FloconAnalytics._(this.streamName);
+  const FloconAnalytics();
+
+  /// The logger of the stream [streamName], for example `'firebase'`.
+  FloconAnalyticsSender sender(String streamName) => FloconAnalyticsSender._(streamName);
+}
+
+/// Logs the events of one stream. Does nothing before [Flocon.initialize].
+class FloconAnalyticsSender {
+  const FloconAnalyticsSender._(this.streamName);
   final String streamName;
 
-  /// Does nothing before [Flocon.initialize].
+  void log(String eventName, [List<AnalyticsProperty> properties = const []]) =>
+      logEvents([AnalyticsEvent(eventName: eventName, properties: properties)]);
+
   void logEvents(List<AnalyticsEvent> events) =>
       Flocon.analyticsPlugin?.registerAnalytics(streamName, events);
 }
-
-FloconAnalytics floconAnalytics(String streamName) =>
-    FloconAnalytics._(streamName);
 
 /// Sends analytics events to the Flocon desktop app.
 class FloconAnalyticsPlugin implements FloconPlugin {

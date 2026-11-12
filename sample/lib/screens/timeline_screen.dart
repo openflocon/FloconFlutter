@@ -56,7 +56,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
           ]),
           const SizedBox(height: 12),
           SampleButton('Log', onPressed: () {
-            floconTimeline.log(_type, _value.text, params: _params);
+            Flocon.timeline.log(_type, _value.text, params: _params);
             setState(() => _sent++);
           }),
         ]),
@@ -72,7 +72,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
           ),
           const SizedBox(height: 12),
           SampleButton('Log', onPressed: () {
-            floconTimeline.logTagged(_tag.text, _taggedValue.text, params: _params, level: _level);
+            Flocon.timeline.logTagged(_tag.text, _taggedValue.text, params: _params, level: _level);
             setState(() => _sent++);
           }),
         ]),
@@ -82,7 +82,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
             detail: 'A custom type, sent without a level',
             buttonTitle: 'Log',
             action: () async {
-              floconTimeline.log(const TimelineType('billing'), 'Purchase started', params: {'sku': 'premium_yearly'});
+              Flocon.timeline.log(const TimelineType('billing'), 'Purchase started', params: {'sku': 'premium_yearly'});
               setState(() => _sent++);
               return null;
             },

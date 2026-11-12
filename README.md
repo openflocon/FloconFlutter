@@ -10,13 +10,13 @@ Once the SDK is started, your app connects to the Flocon desktop app and shows, 
 | **Network** (HTTP) | [`FloconDioInterceptor`](#dio) for [Dio](https://pub.dev/packages/dio), [`FloconHttpClient`](#packagehttp) for [`package:http`](https://pub.dev/packages/http). Headers, bodies, timing, errors, images. Separate packages, so you only pull the HTTP library you use |
 | **Network mocks** and **bad network** | configured from the desktop, applied by the Dio and `http` adapters, nothing to code (see [Mocks](#mocks-and-bad-network)) |
 | **Network** (WebSocket) | [`floconLogWebSocketEvent`](#websockets): log the events of the connections you want to inspect |
-| **Analytics** | [`floconAnalytics(stream)`](#analytics): one table per stream (e.g. per provider) |
-| **Feature flags** | [`floconFeatureFlags(provider)`](#feature-flags): the flags your app evaluated, with their variant and payload |
-| **Timeline** | [`floconTimeline`](#timeline): navigation, user actions, lifecycle and your own events |
-| **Deeplinks** | [`floconRegisterDeeplinks`](#deeplinks): the deeplinks of your app, with their parameters |
+| **Analytics** | [`Flocon.analytics`](#analytics): one table per stream (e.g. per provider) |
+| **Feature flags** | [`Flocon.featureFlags`](#feature-flags): the flags your app evaluated, with their variant and payload |
+| **Timeline** | [`Flocon.timeline`](#timeline): navigation, user actions, lifecycle and your own events |
+| **Deeplinks** | [`Flocon.deeplinks`](#deeplinks): the deeplinks of your app, with their parameters |
 | **Databases** | [`floconEnableDatabasePlugin`](#databases): query the SQLite databases of your app, and see the queries it runs |
-| **Dashboard** | [`floconDashboard`](#dashboard): values of your app updated live, and buttons, inputs and forms that run actions in it |
-| **Tables** | [`floconTable(name)`](#tables): any structured data you want to inspect while the app runs |
+| **Dashboard** | [`Flocon.dashboard`](#dashboard): values of your app updated live, and buttons, inputs and forms that run actions in it |
+| **Tables** | [`Flocon.table`](#tables): any structured data you want to inspect while the app runs |
 | **Preferences** | [`floconRegisterSharedPreferences`](#preferences): browse and edit your `SharedPreferences` from the desktop |
 | **App icon** | your app shows with its icon in the desktop, nothing to set up |
 | **Files** | [`floconEnableFilesPlugin`](#files): browse, download and delete the files of your app from the desktop |
@@ -264,7 +264,7 @@ Each stream is shown as its own table in the desktop app. Use one stream per ana
 to check what each of them receives.
 
 ```dart
-floconAnalytics('firebase').logEvents([
+Flocon.analytics.sender('firebase').logEvents([
   AnalyticsEvent(
     eventName: 'button_clicked',
     properties: [AnalyticsProperty('button_id', 'checkout_pay')],
@@ -279,7 +279,7 @@ one...). No dependency on their SDKs: each call replaces the flags of the provid
 reconnects to the desktop:
 
 ```dart
-floconFeatureFlags('firebase').register([
+Flocon.featureFlags.register('firebase', [
   FloconFeatureFlag(name: 'new_checkout', state: FloconFeatureFlagState.custom, variant: 'treatment', payload: '{"steps": 3}'),
   FloconFeatureFlag(name: 'dark_mode', state: FloconFeatureFlagState.on, variant: 'on'),
   FloconFeatureFlag(name: 'onboarding_v2', state: FloconFeatureFlagState.off, variant: 'control'),
@@ -295,13 +295,13 @@ Log what happens in your app: the events appear in the Flocon timeline, with the
 
 ```dart
 // typed events, without a level
-floconTimeline.logNavigation('CheckoutScreen', params: {'from': 'CartScreen'});
-floconTimeline.logUserAction('tap_buy', params: {'sku': 'premium_yearly'});
-floconTimeline.logLifecycle('resumed');
-floconTimeline.log(const TimelineType('billing'), 'Purchase started');
+Flocon.timeline.logNavigation('CheckoutScreen', params: {'from': 'CartScreen'});
+Flocon.timeline.logUserAction('tap_buy', params: {'sku': 'premium_yearly'});
+Flocon.timeline.logLifecycle('resumed');
+Flocon.timeline.log(const TimelineType('billing'), 'Purchase started');
 
 // tagged events, with a level: debug, info (default), warning or error
-floconTimeline.logTagged('billing', 'Purchase failed', params: {'sku': 'premium_yearly'}, level: TimelineLevel.error);
+Flocon.timeline.logTagged('billing', 'Purchase failed', params: {'sku': 'premium_yearly'}, level: TimelineLevel.error);
 ```
 
 `navigation`, `userAction` and `lifecycle` are shown with their own icon; any other type or tag is a custom one, listed in
@@ -321,7 +321,7 @@ A route is named by its `RouteSettings.name`, otherwise by its type: name your r
 List the deeplinks of your app, writing the parts to fill in between brackets. The desktop opens them itself:
 
 ```dart
-floconRegisterDeeplinks(
+Flocon.deeplinks.register(
   [
     FloconDeeplink('myapp://home', label: 'Home'),
     FloconDeeplink(
@@ -382,7 +382,7 @@ each time a `ValueListenable` (`FloconSection.listen`) or a `Stream` (`FloconSec
 
 ```dart
 // keep the handle: the dashboard stops following the sections when you call handle.dispose()
-final handle = floconDashboard('main', [
+final handle = Flocon.dashboard.dashboard('main', [
   FloconSection.listen('User', session.user, (user) => [
     FloconText('name', user.name),
     FloconText('status', user.status, color: 0xFFFF0000), // ARGB
@@ -412,7 +412,7 @@ again on each connection.
 Columns are created from the names used in the logged rows.
 
 ```dart
-floconTable('users').log([
+Flocon.table.table('users').log([
   TableColumnConfig('name', 'Florent'),
   TableColumnConfig('age', '33'),
 ]);

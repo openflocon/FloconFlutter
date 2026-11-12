@@ -49,19 +49,19 @@ class SampleStartup {
       );
     }
 
-    floconFeatureFlags('firebase').register([
+    Flocon.featureFlags.register('firebase', [
       flag('new_checkout', ['treatment', 'control'], payload: '{"steps": 3, "color": "red"}'),
       flag('dark_mode', ['on', 'off']),
       flag('onboarding_v2', ['control', 'treatment']),
     ]);
-    floconFeatureFlags('statsig').register([
+    Flocon.featureFlags.register('statsig', [
       flag('paywall_layout', ['variant_b', 'variant_a', 'control'], payload: '{"price": 4.99}'),
       flag('share_sheet', ['on', 'off']),
     ]);
   }
 
   static void registerDeeplinks() {
-    floconRegisterDeeplinks(
+    Flocon.deeplinks.register(
       [
         const FloconDeeplink('flocondemo://home', label: 'Home'),
         const FloconDeeplink(
@@ -91,7 +91,7 @@ class SampleStartup {
 
   static void startDashboard() {
     _dashboard?.dispose();
-    _dashboard = floconDashboard('main', [
+    _dashboard = Flocon.dashboard.dashboard('main', [
       FloconSection.listen<SampleUser>('User', user, (u) => [
             FloconText('name', u.name),
             FloconText('status', u.status, color: u.status == 'active' ? 0xFF4FD08A : 0xFFFF6D6D),
@@ -100,7 +100,7 @@ class SampleStartup {
               id: 'logout',
               onClick: () {
                 user.value = user.value.copyWith(status: 'logged out');
-                floconTimeline.logUserAction('dashboard_logout');
+                Flocon.timeline.logUserAction('dashboard_logout');
               },
             ),
             FloconTextField(
@@ -131,7 +131,7 @@ class SampleStartup {
         submitText: 'Create',
         onSubmitted: (values) {
           user.value = SampleUser(name: values['name'] ?? '', status: 'active', isPremium: values['admin'] == 'true');
-          floconTimeline.logUserAction('dashboard_create_user', params: values);
+          Flocon.timeline.logUserAction('dashboard_create_user', params: values);
         },
       ),
     ]);

@@ -17,7 +17,7 @@ class TableColumnConfig {
 /// used in the logged rows.
 ///
 /// ```dart
-/// floconTable('users').log([TableColumnConfig('name', 'Florent'), TableColumnConfig('age', '33')]);
+/// Flocon.table.table('users').log([TableColumnConfig('name', 'Florent'), TableColumnConfig('age', '33')]);
 /// ```
 class FloconTable {
   const FloconTable._(this.tableName);
@@ -28,7 +28,12 @@ class FloconTable {
       Flocon.tablePlugin?.registerTable(tableName, columns, id: id);
 }
 
-FloconTable floconTable(String tableName) => FloconTable._(tableName);
+/// Entry point of the tables: `Flocon.table.table('users')`.
+class FloconTables {
+  const FloconTables();
+
+  FloconTable table(String tableName) => FloconTable._(tableName);
+}
 
 /// Sends table rows to the Flocon desktop app.
 class FloconTablePlugin implements FloconPlugin {

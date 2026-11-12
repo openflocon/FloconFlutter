@@ -73,7 +73,7 @@ class FloconDeeplinkVariable {
 /// reconnects. The desktop opens them itself. Does nothing before `Flocon.initialize`.
 ///
 /// ```dart
-/// floconRegisterDeeplinks([
+/// Flocon.deeplinks.register([
 ///   FloconDeeplink('myapp://home', label: 'Home'),
 ///   FloconDeeplink(
 ///     'myapp://user/[userId]',
@@ -83,8 +83,12 @@ class FloconDeeplinkVariable {
 ///   FloconDeeplink('myapp://[env]/settings', parameters: [FloconDeeplinkParameter.variable('env', variableName: 'env')]),
 /// ], variables: [FloconDeeplinkVariable('env', suggestions: ['staging', 'production'])]);
 /// ```
-void floconRegisterDeeplinks(List<FloconDeeplink> deeplinks, {List<FloconDeeplinkVariable> variables = const []}) =>
-    Flocon.deeplinksPlugin?.register(deeplinks, variables: variables);
+class FloconDeeplinks {
+  const FloconDeeplinks();
+
+  void register(List<FloconDeeplink> deeplinks, {List<FloconDeeplinkVariable> variables = const []}) =>
+      Flocon.deeplinksPlugin?.register(deeplinks, variables: variables);
+}
 
 /// Sends the deeplinks of the app to the Flocon desktop app.
 class FloconDeeplinksPlugin implements FloconPlugin {
