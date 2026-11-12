@@ -12,8 +12,8 @@ or in `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flocon: ^2.0.0
-  flocon_http: ^2.0.0
+  flocon: ^LAST_VERSION
+  flocon_http: ^LAST_VERSION
 ```
 
 ## Usage

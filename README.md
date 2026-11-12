@@ -14,8 +14,7 @@ Full documentation: **https://openflocon.github.io/Flocon/** (every feature page
 
 ## Packages
 
-The SDK is split in several packages, so that you only pull the libraries you use. All are published on pub.dev
-(version 2.0.0), and all but `flocon` depend on it.
+The SDK is split in several packages, so that you only pull the libraries you use. All are published on pub.dev, and all but `flocon` depend on it.
 
 | Package | What it adds | Main dependencies |
 | --- | --- | --- |

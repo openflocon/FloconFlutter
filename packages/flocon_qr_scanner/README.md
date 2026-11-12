@@ -12,8 +12,8 @@ or in `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flocon: ^2.0.0
-  flocon_qr_scanner: ^2.0.0
+  flocon: ^LAST_VERSION
+  flocon_qr_scanner: ^LAST_VERSION
 ```
 
 ## Usage
