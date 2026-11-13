@@ -16,7 +16,7 @@ analytics, feature flags, timeline, crashes and more. Also available for Kotlin 
 | **Network**: every call, mocks, bad network | **Databases**: query your SQLite live |
 |:---:|:---:|
 | ![Network inspector](https://raw.githubusercontent.com/openflocon/Flocon/main/docs/assets/screenshots/network-detail.jpg) | ![Database](https://raw.githubusercontent.com/openflocon/Flocon/main/docs/assets/screenshots/database-sql-editor.jpg) |
-| **Preferences**: browse and edit `SharedPreferences` | **Timeline**: what happened before the crash |
+| **Preferences**: browse and edit `SharedPreferences` | **Timeline**: what happened in the app |
 | ![Preferences](https://raw.githubusercontent.com/openflocon/Flocon/main/docs/assets/screenshots/preferences-list.jpg) | ![Timeline](https://raw.githubusercontent.com/openflocon/Flocon/main/docs/assets/screenshots/home-timeline-graph.jpg) |
 
 Full documentation: **https://openflocon.github.io/Flocon/** (every feature page has a Flutter tab).
