@@ -1,6 +1,7 @@
 # FloconFlutter
 
 [![pub package](https://img.shields.io/pub/v/flocon.svg)](https://pub.dev/packages/flocon)
+[![AI agents: MCP](https://img.shields.io/badge/AI%20agents-MCP-black)](https://openflocon.github.io/Flocon/mcp/)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 Flutter SDK for [Flocon](https://github.com/openflocon/Flocon), the desktop debugger for mobile apps. Once the SDK is
@@ -8,9 +9,23 @@ started, your app connects to the Flocon desktop app and shows, live: network ca
 analytics, feature flags, timeline, crashes and more. Also available for Kotlin and Swift
 ([FloconSwift](https://github.com/openflocon/FloconSwift)).
 
-![Flocon Desktop showing the Timeline of an app](https://raw.githubusercontent.com/openflocon/Flocon/main/docs/assets/screenshots/home-timeline-graph.jpg)
+| **Network**: every call, mocks, bad network | **Databases**: query your SQLite live |
+|:---:|:---:|
+| ![Network inspector](https://raw.githubusercontent.com/openflocon/Flocon/main/docs/assets/screenshots/network-detail.jpg) | ![Database](https://raw.githubusercontent.com/openflocon/Flocon/main/docs/assets/screenshots/database-sql-editor.jpg) |
+| **Preferences**: browse and edit `SharedPreferences` | **Timeline**: what happened before the crash |
+| ![Preferences](https://raw.githubusercontent.com/openflocon/Flocon/main/docs/assets/screenshots/preferences-list.jpg) | ![Timeline](https://raw.githubusercontent.com/openflocon/Flocon/main/docs/assets/screenshots/home-timeline-graph.jpg) |
 
 Full documentation: **https://openflocon.github.io/Flocon/** (every feature page has a Flutter tab).
+
+## Your AI agent can see your app
+
+Flocon Desktop runs an MCP server: Claude Code, Codex, Cursor or Gemini read the network calls, timeline, databases and preferences of your running Flutter app, then mock calls, simulate a bad network and take screenshots. Try asking:
+
+- *"What happened right before the crash?"*
+- *"Mock `/profile` with a 503 and take a screenshot."*
+- *"Which analytics events are sent on checkout?"*
+
+In Claude Code: `/plugin marketplace add openflocon/Flocon`, then `/plugin install flocon@flocon`. Other agents: [MCP setup](https://openflocon.github.io/Flocon/mcp/), and the [cookbook](https://openflocon.github.io/Flocon/mcp-cookbook/).
 
 ## Packages
 
@@ -113,12 +128,6 @@ Flutter-specific limits:
 - Only Dart and Flutter errors are reported; native crashes (Kotlin, Java, Swift, C++) are not.
 - Mocks of WebSocket messages are not supported.
 - No WebView inspection and no accessibility tools.
-
-## AI agents
-
-Flocon can expose what it shows to AI agents through an MCP server, so an agent can debug your Flutter app against
-real data. See [MCP](https://openflocon.github.io/Flocon/mcp/) and the
-[cookbook](https://openflocon.github.io/Flocon/mcp-cookbook/).
 
 ## Sample
 
