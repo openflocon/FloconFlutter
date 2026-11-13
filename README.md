@@ -1,3 +1,7 @@
+<p align="center">
+  <img height="450" alt="Flocon banner" src="https://raw.githubusercontent.com/openflocon/Flocon/main/ressources/flocon_banner_small.jpeg" />
+</p>
+
 # FloconFlutter
 
 [![pub package](https://img.shields.io/pub/v/flocon.svg)](https://pub.dev/packages/flocon)
