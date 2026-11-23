@@ -16,7 +16,7 @@ export 'src/plugins/analytics/analytics_plugin.dart';
 export 'src/plugins/dashboard/dashboard_content.dart' show FloconDashboardContent, FloconForm, FloconSection;
 export 'src/plugins/dashboard/dashboard_elements.dart';
 export 'src/plugins/dashboard/dashboard_plugin.dart' show FloconDashboardHandle, FloconDashboardPlugin, FloconDashboards;
-export 'src/plugins/deeplinks/deeplinks_plugin.dart' show FloconDeeplink, FloconDeeplinkParameter, FloconDeeplinkVariable, FloconDeeplinks, FloconDeeplinksPlugin;
+export 'src/plugins/deeplinks/deeplinks_plugin.dart' show FloconDeeplink, FloconDeeplinkParameter, FloconDeeplinkSuggestion, FloconDeeplinkVariable, FloconDeeplinks, FloconDeeplinksPlugin;
 export 'src/plugins/feature_flags/feature_flags_plugin.dart' show FloconFeatureFlag, FloconFeatureFlagState, FloconFeatureFlags, FloconFeatureFlagsPlugin;
 export 'src/plugins/plugin_apis.dart';
 export 'src/plugins/table/table_plugin.dart';
