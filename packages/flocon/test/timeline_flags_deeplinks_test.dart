@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flocon/flocon.dart';
+import 'package:flocon/src/plugins/deeplinks/deeplinks_plugin.dart' show normalizeDeeplinkSuggestions;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -157,6 +158,68 @@ void main() {
           {'name': 'free', 'description': 'Any text'},
         ],
       });
+    });
+
+    test('labels and the default come next to the plain values', () {
+      final sender = _Sender();
+      FloconDeeplinksPlugin(sender: sender).register(
+        [
+          const FloconDeeplink('myapp://feed?tab=[tab]', parameters: [
+            FloconDeeplinkParameter.suggestions('tab', [
+              FloconDeeplinkSuggestion('posts'),
+              FloconDeeplinkSuggestion('friends', label: 'Friends list', isDefault: true),
+            ]),
+          ]),
+        ],
+        variables: const [
+          FloconDeeplinkVariable('env', suggestionItems: [
+            FloconDeeplinkSuggestion('prod', label: 'Production'),
+            FloconDeeplinkSuggestion('staging', isDefault: true),
+          ]),
+        ],
+      );
+      expect(sender.sent.single.body, {
+        'deeplinks': [
+          {
+            'link': 'myapp://feed?tab=[tab]',
+            'parameters': [
+              {
+                'type': 'auto_complete',
+                'name': 'tab',
+                'autoComplete': ['posts', 'friends'],
+                'suggestions': [
+                  {'value': 'posts'},
+                  {'value': 'friends', 'label': 'Friends list', 'isDefault': true},
+                ],
+              },
+            ],
+          },
+        ],
+        'variables': [
+          {
+            'name': 'env',
+            'mode': {
+              'type': 'auto_complete',
+              'suggestions': ['prod', 'staging'],
+              'items': [
+                {'value': 'prod', 'label': 'Production'},
+                {'value': 'staging', 'isDefault': true},
+              ],
+            },
+          },
+        ],
+      });
+    });
+
+    test('only the first default stays and the last declaration of a value wins', () {
+      final result = normalizeDeeplinkSuggestions(const [
+        FloconDeeplinkSuggestion('a', label: 'A', isDefault: true),
+        FloconDeeplinkSuggestion('b', isDefault: true),
+        FloconDeeplinkSuggestion('a', label: 'A bis'),
+      ]);
+      expect(result.map((s) => s.value), ['b', 'a']);
+      expect(result.map((s) => s.isDefault), [true, false]);
+      expect(result.last.label, 'A bis');
     });
 
     test('the list is sent again on connection, nothing before a registration', () {

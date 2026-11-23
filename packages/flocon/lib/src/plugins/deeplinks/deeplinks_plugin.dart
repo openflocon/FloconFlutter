@@ -4,6 +4,43 @@ import '../../core/plugin.dart';
 import '../../flocon.dart';
 import '../../model/message_from_server.dart';
 
+/// A value suggested for a deeplink parameter or variable.
+class FloconDeeplinkSuggestion {
+  const FloconDeeplinkSuggestion(this.value, {this.label, this.isDefault = false});
+
+  /// What is inserted in the link when the suggestion is picked.
+  final String value;
+
+  /// What the desktop shows instead of [value].
+  final String? label;
+
+  /// Pre-selected by the desktop while the field is empty. Only the first default of a list is kept.
+  final bool isDefault;
+
+  Map<String, Object> toJson() => {
+        'value': value,
+        if (label != null) 'label': label!,
+        if (isDefault) 'isDefault': true,
+      };
+}
+
+/// Removes the duplicated values (the last declaration of a value wins) and keeps only the first default.
+List<FloconDeeplinkSuggestion> normalizeDeeplinkSuggestions(List<FloconDeeplinkSuggestion> suggestions) {
+  final lastIndex = <String, int>{};
+  for (var i = 0; i < suggestions.length; i++) {
+    lastIndex[suggestions[i].value] = i;
+  }
+  final unique = [
+    for (var i = 0; i < suggestions.length; i++)
+      if (lastIndex[suggestions[i].value] == i) suggestions[i],
+  ];
+  final defaultValue = unique.where((s) => s.isDefault).map((s) => s.value).firstOrNull;
+  return [
+    for (final s in unique)
+      FloconDeeplinkSuggestion(s.value, label: s.label, isDefault: defaultValue != null && s.value == defaultValue),
+  ];
+}
+
 /// A part of a deeplink the desktop lets you fill in: written between brackets in the link, for example `[userId]`.
 sealed class FloconDeeplinkParameter {
   const FloconDeeplinkParameter(this.name);
@@ -13,6 +50,9 @@ sealed class FloconDeeplinkParameter {
 
   /// A parameter with suggestions.
   const factory FloconDeeplinkParameter.autoComplete(String name, List<String> suggestions) = FloconAutoCompleteParameter;
+
+  /// A parameter with suggestions that can have a label, and a default one pre-selected by the desktop.
+  const factory FloconDeeplinkParameter.suggestions(String name, List<FloconDeeplinkSuggestion> suggestions) = FloconSuggestionsParameter;
 
   /// A parameter shared by several deeplinks, edited once in the desktop (see [FloconDeeplinkVariable]).
   const factory FloconDeeplinkParameter.variable(String name, {required String variableName}) = FloconVariableParameter;
@@ -26,6 +66,23 @@ class FloconAutoCompleteParameter extends FloconDeeplinkParameter {
 
   @override
   Map<String, Object> toJson() => {'type': 'auto_complete', 'name': name, 'autoComplete': suggestions};
+}
+
+class FloconSuggestionsParameter extends FloconDeeplinkParameter {
+  const FloconSuggestionsParameter(super.name, this.suggestions);
+  final List<FloconDeeplinkSuggestion> suggestions;
+
+  /// `autoComplete` keeps the values for desktops that do not know `suggestions` yet.
+  @override
+  Map<String, Object> toJson() {
+    final items = normalizeDeeplinkSuggestions(suggestions);
+    return {
+      'type': 'auto_complete',
+      'name': name,
+      'autoComplete': [for (final s in items) s.value],
+      'suggestions': [for (final s in items) s.toJson()],
+    };
+  }
 }
 
 class FloconVariableParameter extends FloconDeeplinkParameter {
@@ -56,17 +113,32 @@ class FloconDeeplink {
 
 /// A value shared by several deeplinks, edited once in the desktop app.
 class FloconDeeplinkVariable {
-  const FloconDeeplinkVariable(this.name, {this.description, this.suggestions});
+  const FloconDeeplinkVariable(this.name, {this.description, this.suggestions, this.suggestionItems});
 
   final String name;
   final String? description;
+
+  /// Plain values offered by the desktop. Ignored when [suggestionItems] is set.
   final List<String>? suggestions;
 
-  Map<String, Object> toJson() => {
-        'name': name,
-        if (suggestions != null) 'mode': {'type': 'auto_complete', 'suggestions': suggestions!},
-        if (description != null) 'description': description!,
-      };
+  /// Suggestions that can have a label, and a default one pre-selected by the desktop.
+  final List<FloconDeeplinkSuggestion>? suggestionItems;
+
+  Map<String, Object> toJson() {
+    final items = suggestionItems == null ? null : normalizeDeeplinkSuggestions(suggestionItems!);
+    return {
+      'name': name,
+      if (items != null)
+        'mode': {
+          'type': 'auto_complete',
+          'suggestions': [for (final s in items) s.value],
+          'items': [for (final s in items) s.toJson()],
+        }
+      else if (suggestions != null)
+        'mode': {'type': 'auto_complete', 'suggestions': suggestions!},
+      if (description != null) 'description': description!,
+    };
+  }
 }
 
 /// Lists the deeplinks of the app in the Flocon desktop app, replacing the previous list; it is sent again when the app
@@ -80,6 +152,12 @@ class FloconDeeplinkVariable {
 ///     label: 'User',
 ///     parameters: [FloconDeeplinkParameter.autoComplete('userId', ['Florent', 'David'])],
 ///   ),
+///   FloconDeeplink('myapp://feed?tab=[tab]', parameters: [
+///     FloconDeeplinkParameter.suggestions('tab', [
+///       FloconDeeplinkSuggestion('posts', isDefault: true),
+///       FloconDeeplinkSuggestion('friends', label: 'Friends list'),
+///     ]),
+///   ]),
 ///   FloconDeeplink('myapp://[env]/settings', parameters: [FloconDeeplinkParameter.variable('env', variableName: 'env')]),
 /// ], variables: [FloconDeeplinkVariable('env', suggestions: ['staging', 'production'])]);
 /// ```

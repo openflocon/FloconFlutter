@@ -68,7 +68,13 @@ class SampleStartup {
           'flocondemo://user/[userId]',
           label: 'User',
           description: 'Open the profile of a user',
-          parameters: [FloconDeeplinkParameter.autoComplete('userId', ['Florent', 'David', 'Marie'])],
+          parameters: [
+            FloconDeeplinkParameter.suggestions('userId', [
+              FloconDeeplinkSuggestion('Florent', label: 'Florent (admin)', isDefault: true),
+              FloconDeeplinkSuggestion('David', label: 'David (guest)'),
+              FloconDeeplinkSuggestion('Marie'),
+            ]),
+          ],
         ),
         const FloconDeeplink(
           'flocondemo://post/[postId]?comment=[comment]',
